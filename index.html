@@ -7910,6 +7910,10 @@ const PP83=(()=>{const NOMI=['eric','carla','claudia','nathan','sophia','manuel'
    Fiat Punto, Fiat Panda, Fiat 500, Volkswagen Golf II e IV, Renault Clio, Ape Piaggio (licenza CC-BY, crediti nel Menu').
    Ogni auto del traffico riceve un modello vero; da vicino si vede quello, da lontano resta la sagoma semplice di prima.
    L: lunghezza vera in metri, r: rotazione per portare il muso nella direzione di marcia del gioco. */
+/* v105: abitacolo scuro dentro la Panda: il modello non ha i vetri, dal lunotto si vedeva l'asfalto attraverso l'auto */
+function CABIN105(w){w.updateMatrixWorld(true);const bb=new THREE.Box3().setFromObject(w),sz=bb.getSize(new THREE.Vector3()),c=bb.getCenter(new THREE.Vector3());
+ const g=new THREE.Mesh(new THREE.BoxGeometry(sz.x*.7,sz.y*.5,sz.z*.8),new THREE.MeshStandardMaterial({color:0x14181d,roughness:.18,metalness:.5}));
+ g.position.set(c.x,bb.min.y+sz.y*.55,c.z);g.name='cabina105';w.add(g);return g}
 const CAR83=(()=>{const M=[{f:'punto',L:3.76,r:0},{f:'panda',L:3.38,r:Math.PI/2},{f:'golf4',L:4.15,r:0},{f:'golf2',L:3.99,r:0},{f:'clio',L:3.77,r:0},
   {f:'ape',L:2.62,r:0,ra:.15},{f:'fiat500f',L:2.97,r:0},{f:'clio98',L:3.77,r:-Math.PI/2}],T=[],R2=170*170;let ok=false,tk=0;
  const fixMat=m=>{for(const q of(Array.isArray(m)?m:[m])){q.userData.noDet=1;q.userData.noCan=1;for(const k of['map','emissiveMap'])if(q[k])q[k].encoding=THREE.LinearEncoding;if(typeof ENV!=='undefined'&&q.metalness>.2){q.envMap=ENV;q.envMapIntensity=.6}q.needsUpdate=true}};
@@ -7917,7 +7921,7 @@ const CAR83=(()=>{const M=[{f:'punto',L:3.76,r:0},{f:'panda',L:3.38,r:Math.PI/2}
   for(const d of M){try{const g=await new Promise((res,rej)=>LOADM83(L,base+d.f,res,rej));const o=g.scene;o.rotation.y=d.r+Math.PI/2;o.updateMatrixWorld(true);
     const bb=new THREE.Box3().setFromObject(o),sz=bb.getSize(new THREE.Vector3()),s=d.L/Math.max(.01,sz.x);o.scale.setScalar(s);o.updateMatrixWorld(true);
     const b2=new THREE.Box3().setFromObject(o),c=b2.getCenter(new THREE.Vector3());o.position.set(-c.x,-b2.min.y,-c.z);
-    o.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true;fixMat(m.material)}});const w=new THREE.Group();w.add(o);T.push(w)}catch(e){console.warn('auto vera mancante',d.f)}}
+    o.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true;fixMat(m.material)}});const w=new THREE.Group();w.add(o);if(d.f==='panda')CABIN105(w);T.push(w)}catch(e){console.warn('auto vera mancante',d.f)}}
   if(!T.length)return;ok=true;console.log('MODS auto vere pronte',T.length)}
  function dress(t,i){if(!t.m||t.m.userData.c83)return;const v=T[i%T.length].clone(true);v.visible=false;t.m.add(v);t.m.userData.c83=v;t.m.userData.o83=t.m.children.filter(c=>c!==v)}
  /* v95: modelli veri solo sulle 14 auto piu' vicine entro 170 m (prima tutte: con molto traffico migliaia di pezzi da disegnare, 2-3 fps) */
@@ -8558,7 +8562,7 @@ const MEZ90=(()=>{const V=new THREE.Vector3(),T={},busy={},TPG={};
     else{let sx=0,n=0;o.traverse(m=>{if(m.isMesh){const P=m.geometry.attributes.position;for(let i=0;i<P.count;i+=7){V.fromBufferAttribute(P,i).applyMatrix4(m.matrixWorld);sx+=V.x;n++}}});fx=sx/Math.max(1,n)-bb.getCenter(new THREE.Vector3()).x}
     if(fx<0){r.rotation.y+=Math.PI;w.updateMatrixWorld(true);bb=new THREE.Box3().setFromObject(w);sz=bb.getSize(new THREE.Vector3())}}
    if(c.flip)r.rotation.y+=Math.PI;const s=c.L/Math.max(.01,sz.x);console.log('MODS mezzo',kind,sz.x.toFixed(2),sz.y.toFixed(2),sz.z.toFixed(2));r.scale.setScalar(s);w.updateMatrixWorld(true);bb=new THREE.Box3().setFromObject(w);const ct=bb.getCenter(new THREE.Vector3());r.position.set(-ct.x,-bb.min.y,-ct.z);w.updateMatrixWorld(true);
-   o.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true;fix(m.material)}});
+   o.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true;fix(m.material)}});if(kind==='panda'&&typeof CABIN105==='function')CABIN105(w);
    /* pale dell'elicottero: i triangoli piu' in alto diventano un pezzo che gira */
    if(c.rotor){w.updateMatrixWorld(true);const top=new THREE.Box3().setFromObject(w).max.y;const parts=[];o.traverse(m=>{if(m.isMesh)parts.push(m)});const RG=new THREE.Group();
     for(const m of parts){const gg=m.geometry.index?m.geometry.toNonIndexed():m.geometry,P=gg.attributes.position,M=new THREE.Matrix4().copy(m.matrixWorld),Mi=new THREE.Matrix4().copy(w.matrixWorld).invert();const keepB=[],keepR=[];
@@ -9268,12 +9272,17 @@ const VEST102=(()=>{
 const ACQ103=(()=>{const WK=k=>k==='jetski'||k==='riva';let lw=null,t=0;
  const wet=(x,z)=>{try{return H(x,z)<-.15}catch(e){return false}};
  /* il mare piu' vicino: spirale di punti fino a 4 km */
- function nearWater(x,z){if(wet(x,z))return[x,z];for(let r=30;r<4000;r+=30){const n=Math.max(8,Math.round(r/12));for(let i=0;i<n;i++){const a=i/n*Math.PI*2,px=x+Math.cos(a)*r,pz=z+Math.sin(a)*r;if(wet(px,pz)&&wet(px+8,pz)&&wet(px-8,pz)&&wet(px,pz+8)&&wet(px,pz-8))return[px,pz]}}return null}
- function spawn(){if(foot||!WK(me.kind))return;const w=nearWater(me.x,me.z);if(!w){msg('Nessun mare vicino: vai verso il Poetto o il porto');return}me.x=w[0];me.z=w[1];me.vx=me.vz=0;me.y=0;lw=[me.x,me.z];msg(me.kind==='jetski'?'🌊 Moto d’acqua: buon divertimento!':'🚤 Motoscafo pronto')}
- function tick(now,dt){if(foot||!me||!WK(me.kind)||!me.m)return;t+=dt;const sp=Math.hypot(me.vx,me.vz);
+ function nearWater(x,z,R){if(wet(x,z))return[x,z];for(let r=30;r<(R||4000);r+=30){const n=Math.max(8,Math.round(r/12));for(let i=0;i<n;i++){const a=i/n*Math.PI*2,px=x+Math.cos(a)*r,pz=z+Math.sin(a)*r;if(wet(px,pz)&&wet(px+8,pz)&&wet(px-8,pz)&&wet(px,pz+8)&&wet(px,pz-8))return[px,pz]}}return null}
+ /* v105: punti di mare vero (non gli stagni: Molentargius e Santa Gilla sono vicini e prima venivano scelti loro) */
+ const SEA=[['Poetto (Prima Fermata)',4850,6423],['Poetto (Ospedale Marino)',6919,5649],['Poetto di Quartu',9505,4709],['Marina Piccola',4979,7087],['Porto di Cagliari',927,5616],['Su Siccu',2177,6147],['Calamosca',3902,8027]];
+ let sp0=-1e9,fix=0;
+ function spawn(){if(foot||!WK(me.kind))return;let b=null,bd=1e18;for(const q of SEA){const d=Math.hypot(q[1]-me.x,q[2]-me.z);if(d<bd){bd=d;b=q}}
+  me.x=b[1];me.z=b[2];me.vx=me.vz=0;me.y=0;lw=[me.x,me.z];sp0=performance.now()/1000;fix=1;msg((me.kind==='jetski'?'🌊 Moto d’acqua':'🚤 Motoscafo')+' al mare: '+b[0])}
+ function tick(now,dt){if(foot||!me||!WK(me.kind)||!me.m)return;t+=dt;
+  /* appena arrivato: quando il quadrato del mondo e' caricato, se il punto non e' acqua cerca il mare entro 400 m */if(fix&&performance.now()/1000-sp0>1.5){if(wet(me.x,me.z))fix=0;else{const w=nearWater(me.x,me.z,400);if(w){me.x=w[0];me.z=w[1];lw=[me.x,me.z];fix=0}else if(performance.now()/1000-sp0>12)fix=0}}const quiet=fix;const sp=Math.hypot(me.vx,me.vz);
   if(wet(me.x,me.z)){lw=[me.x,me.z];const big=me.kind==='riva';const bob=Math.sin(t*(big?1.3:2.1))*(big?.08:.12)+Math.sin(t*3.7+me.x*.05)*.04;me.y=bob;me.m.position.y=bob;
    const pitch=Math.min(.18,sp/(big?160:110))-(big?0:Math.sin(t*2.6)*.03);me.m.rotation.z=pitch;}
-  else{/* a terra o sulla spiaggia: si arena */me.vx*=Math.pow(.02,dt);me.vz*=Math.pow(.02,dt);let h=0;try{h=H(me.x,me.z)}catch(e){}if(lw&&h>.6){me.x+=(lw[0]-me.x)*Math.min(1,dt*3);me.z+=(lw[1]-me.z)*Math.min(1,dt*3)}me.y=Math.max(h,0);me.m.position.y=me.y;if(!tick.m||now-tick.m>4){tick.m=now;msg('Sei arenato: torna in acqua')}}}
+  else{/* a terra o sulla spiaggia: si arena */me.vx*=Math.pow(.02,dt);me.vz*=Math.pow(.02,dt);let h=0;try{h=H(me.x,me.z)}catch(e){}if(lw&&h>.6){me.x+=(lw[0]-me.x)*Math.min(1,dt*3);me.z+=(lw[1]-me.z)*Math.min(1,dt*3)}me.y=Math.max(h,0);me.m.position.y=me.y;if(!quiet&&(!tick.m||now-tick.m>4)){tick.m=now;msg('Sei arenato: torna in acqua')}}}
  /* quota su cui sta il mezzo: in acqua la superficie del mare che ondeggia (non il fondale) */
  function floor(g){if(wet(me.x,me.z)){const big=me.kind==='riva';return Math.sin(t*(big?1.3:2.1))*(big?.08:.12)+Math.sin(t*3.7+me.x*.05)*.04}return Math.max(g,0)}
  return{tick,spawn,nearWater,floor}})();
@@ -9354,7 +9363,7 @@ const NEG104=(()=>{let L=null,busy=0,t0=0;const ON=new Map(),BG=['#22262e','#0a7
 const MARE104=(()=>{let mat=null,U={value:0},ac=null,src=null,g=null;
  function find(){scene.traverse(o=>{if(mat||!o.isMesh||!o.material)return;const m=o.material;if(m.transparent&&m.color&&m.color.getHex()===0x2e8aa6)mat=m});if(!mat)return;
   const prev=mat.onBeforeCompile;mat.onBeforeCompile=sh=>{if(prev)prev(sh);sh.uniforms.uT104=U;
-   sh.fragmentShader=sh.fragmentShader.replace('void main() {','uniform float uT104;\nvoid main() {').replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\n{vec2 p=vW82.xz;float t=uT104;float ax=cos(p.x*.31+t*1.3)*.31+cos((p.x+p.y)*.83+t*2.1)*.42+cos(p.x*1.9-p.y*.7+t*3.1)*.25;float az=cos(p.y*.37-t*1.1)*.37+cos((p.x+p.y)*.83+t*2.1)*.42+cos(p.y*2.3+p.x*.4-t*2.7)*.2;normal=normalize(normal+vec3(-ax,0.,-az)*.11);}');
+   sh.fragmentShader=sh.fragmentShader.replace('void main() {','uniform float uT104;\nvoid main() {').replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\n{vec2 p=vW82.xz;float t=uT104;float ax=cos(p.x*.31+t*1.3)*.31+cos((p.x+p.y)*.83+t*2.1)*.42+cos(p.x*1.9-p.y*.7+t*3.1)*.25;float az=cos(p.y*.37-t*1.1)*.37+cos((p.x+p.y)*.83+t*2.1)*.42+cos(p.y*2.3+p.x*.4-t*2.7)*.2;normal=normalize(normal+vec3(-ax,0.,-az)*.2);}');
   };const ck=mat.customProgramCacheKey;mat.customProgramCacheKey=()=>(ck?ck():'')+'mare104';mat.needsUpdate=true;console.log('MODS onde sul mare attive')}
  /* suono delle onde: rumore bianco passato in un filtro, volume che sale e scende come la risacca */
  function audio(){try{if(typeof AC==='undefined'||!AC)return;ac=AC;const n=ac.sampleRate*2,b=ac.createBuffer(1,n,ac.sampleRate),d=b.getChannelData(0);let l=0;for(let i=0;i<n;i++){l=(l+.02*(Math.random()*2-1))/1.02;d[i]=l*3.5}
