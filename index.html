@@ -6886,14 +6886,19 @@ function phys(c,dt,gas,brk,st,hb){if(c.air){gas=brk=0;hb=0;st*=.2}const fx=Math.
  c.vx=vf*fx+vl*rx;c.vz=vf*fz+vl*rz;c.x+=c.vx*dt;c.z+=c.vz*dt;
  c.yaw+=ss*(hv?2.4:1.9+2*c.dft)*cl(vf/7,-1,1)*(c.sg?1/(1+vf*vf/(c.sg*c.sg)):1/(1+Math.abs(vf)/70))*dt;if(!hv)c.yaw-=cl(vl/(Math.abs(vf)+10),-.8,.8)*(3-2.2*c.dft+Math.max(0,slp-.9)*4)*cl(vf/10,-1,1)*dt;
  const imp=collide(c);sync(c,vf,vl,(vf-v0)/dt,dt);return imp}
-function collide(c){let imp=0;const fx=Math.cos(c.yaw),fz=-Math.sin(c.yaw),bk96=c===me&&(me.kind=='bike'||me.kind=='vespa'||me.kind=='bici')&&!foot,R96=bk96?.42:1.1;
- for(const o of(bk96?[-.7,0,.7]:[-1.2,1.2])){const px=c.x+fx*o,pz=c.z+fz*o;
+function collide(c){let imp=0;const fx=Math.cos(c.yaw),fz=-Math.sin(c.yaw),bk96=c===me&&(me.kind=='bike'||me.kind=='vespa'||me.kind=='bici')&&!foot,z105=c===me&&!foot&&!bk96?SZ105(me.kind):null,R96=bk96?.42:z105?z105[1]:1.1;
+ for(const o of(bk96?[-.7,0,.7]:z105?[-(z105[0]-z105[1]),0,z105[0]-z105[1]]:[-1.2,1.2])){const px=c.x+fx*o,pz=c.z+fz*o;
   for(const b of(c.y<-.3?UGW:nearLots(px,pz))){if(c.y>b.h-.3||(b.fl&&b.h<=(c.y||0)+.3+.5*Math.hypot(cl(c.x,b.x0,b.x1)-c.x,cl(c.z,b.z0,b.z1)-c.z))||(b.lo!==undefined&&(c.y||0)<b.lo-.5))continue;const qx=cl(px,b.x0,b.x1),qz=cl(pz,b.z0,b.z1);let dx=px-qx,dz=pz-qz,d=Math.hypot(dx,dz);
    if(d<R96){if(d<1e-4){dx=px-(b.x0+b.x1)/2;dz=pz-(b.z0+b.z1)/2;d=Math.hypot(dx,dz)||1}
     const nx=dx/d,nz=dz/d;c.x+=nx*(R96-d);c.z+=nz*(R96-d);const vn=c.vx*nx+c.vz*nz;if(vn<0){c.vx-=1.3*vn*nx;c.vz-=1.3*vn*nz;imp=Math.max(imp,-vn)}}}}
  if(c.x<MB82[0]||c.x>MB82[1]){c.x=cl(c.x,MB82[0],MB82[1]);c.vx*=-.3}if(c.z<MB82[2]||c.z>MB82[3]){c.z=cl(c.z,MB82[2],MB82[3]);c.vz*=-.3}return imp}
+function SZ105(k){return k=='sport'?[2.39,1.0]:k=='panda'?[1.69,.75]:(k=='bike'||k=='vespa'||k=='bici')?[.9,.32]:null}
+function OB105(p,o,a,b){/* due rettangoli orientati: p (mezze misure a) e o (mezze misure b); restituisce [nx,nz,penetrazione] o null */
+ const y1=p.yaw||0,y2=o.yaw||0,A=[[Math.cos(y1),-Math.sin(y1)],[Math.sin(y1),Math.cos(y1)],[Math.cos(y2),-Math.sin(y2)],[Math.sin(y2),Math.cos(y2)]],dx=p.x-o.x,dz=p.z-o.z;let best=null;
+ for(const v of A){const ra=a[0]*Math.abs(A[0][0]*v[0]+A[0][1]*v[1])+a[1]*Math.abs(A[1][0]*v[0]+A[1][1]*v[1]),rb=b[0]*Math.abs(A[2][0]*v[0]+A[2][1]*v[1])+b[1]*Math.abs(A[3][0]*v[0]+A[3][1]*v[1]),d=dx*v[0]+dz*v[1],ov=ra+rb-Math.abs(d);
+  if(ov<=0)return null;if(!best||ov<best[2]){const s=d<0?-1:1;best=[v[0]*s,v[1]*s,ov]}}return best}
 function B96(dx,dz,o){const y=o.yaw||0,fx=Math.cos(y),fz=-Math.sin(y),lo=dx*fx+dz*fz,la=-dx*fz+dz*fx,hl=2.55,hw=1.3;if(Math.abs(lo)>=hl||Math.abs(la)>=hw)return null;const pl=hl-Math.abs(lo),pw=hw-Math.abs(la);if(pw<pl){const s=la<0?-1:1;return[-fz*s,fx*s,pw]}const s=lo<0?-1:1;return[fx*s,fz*s,pl]}
-function bump(p,o){if((p.y||0)-H(p.x,p.z)>4||Math.abs((p.y||0)-(o.y||0))>4)return 0;const dx=p.x-o.x,dz=p.z-o.z,d=Math.hypot(dx,dz)||1;const r96=(p===me&&(me.kind=='bike'||me.kind=='vespa'||me.kind=='bici')&&!foot)?B96(dx,dz,o):(d<3.4?[dx/d,dz/d,3.4-d]:null);if(!r96)return 0;const [nx,nz,ov]=r96,dy=o.vx!==undefined;
+function bump(p,o){if((p.y||0)-H(p.x,p.z)>4||Math.abs((p.y||0)-(o.y||0))>4)return 0;const dx=p.x-o.x,dz=p.z-o.z,d=Math.hypot(dx,dz)||1;const sz105=p===me&&!foot?SZ105(me.kind):null;const r96=sz105?OB105(p,o,sz105,[o.hl||2.05,o.hw||.88]):(d<3.4?[dx/d,dz/d,3.4-d]:null);if(!r96)return 0;const [nx,nz,ov]=r96,dy=o.vx!==undefined;
  p.x+=nx*ov*.6;p.z+=nz*ov*.6;if(dy){o.x-=nx*ov*.4;o.z-=nz*ov*.4}
  const rv=(p.vx-(o.vx||0))*nx+(p.vz-(o.vz||0))*nz;if(rv<0){p.vx-=1.2*rv*nx;p.vz-=1.2*rv*nz;if(dy){o.vx+=.8*rv*nx;o.vz+=.8*rv*nz}else o.s*=.3;return -rv}return 0}
 const ST59={x:2552.2,z:1692.0,yaw:Math.atan2(-.754,-.657)};const me=mkS(ST59.x,ST59.z,ST59.yaw,0xdff20a,0,9);me.y=H00(ST59.x,ST59.z);me.top=112;me.ac=60;me.dr=.004;me.sg=70;me.lf=1;
@@ -7912,8 +7917,8 @@ const PP83=(()=>{const NOMI=['eric','carla','claudia','nathan','sophia','manuel'
    L: lunghezza vera in metri, r: rotazione per portare il muso nella direzione di marcia del gioco. */
 /* v105: abitacolo scuro dentro la Panda: il modello non ha i vetri, dal lunotto si vedeva l'asfalto attraverso l'auto */
 function CABIN105(w){w.updateMatrixWorld(true);const bb=new THREE.Box3().setFromObject(w),sz=bb.getSize(new THREE.Vector3()),c=bb.getCenter(new THREE.Vector3());
- const g=new THREE.Mesh(new THREE.BoxGeometry(sz.x*.7,sz.y*.5,sz.z*.8),new THREE.MeshStandardMaterial({color:0x14181d,roughness:.18,metalness:.5}));
- g.position.set(c.x,bb.min.y+sz.y*.55,c.z);g.name='cabina105';w.add(g);return g}
+ const g=new THREE.Mesh(new THREE.BoxGeometry(sz.x*.6,sz.y*.32,sz.z*.66),new THREE.MeshStandardMaterial({color:0x14181d,roughness:.18,metalness:.5}));
+ g.position.set(c.x-sz.x*.03,bb.min.y+sz.y*.42,c.z);g.name='cabina105';w.add(g);return g}
 const CAR83=(()=>{const M=[{f:'punto',L:3.76,r:0},{f:'panda',L:3.38,r:Math.PI/2},{f:'golf4',L:4.15,r:0},{f:'golf2',L:3.99,r:0},{f:'clio',L:3.77,r:0},
   {f:'ape',L:2.62,r:0,ra:.15},{f:'fiat500f',L:2.97,r:0},{f:'clio98',L:3.77,r:-Math.PI/2}],T=[],R2=170*170;let ok=false,tk=0;
  const fixMat=m=>{for(const q of(Array.isArray(m)?m:[m])){q.userData.noDet=1;q.userData.noCan=1;for(const k of['map','emissiveMap'])if(q[k])q[k].encoding=THREE.LinearEncoding;if(typeof ENV!=='undefined'&&q.metalness>.2){q.envMap=ENV;q.envMapIntensity=.6}q.needsUpdate=true}};
@@ -8208,7 +8213,7 @@ const BUS88=(()=>{const RT=[],B=[],ST=[],Z=new THREE.Vector3();let ok=false,tpl=
   for(const b of B)if(b.r)step(b,dt)}
  /* per il traffico e per le urti: autobus davanti a (x,z) nella direzione (ux,uz) */
  function lim(t,ux,uz){let l=1e9;for(const b of B){if(!b.r)continue;for(const p of b.P){const rx=p.x-t.x,rz=p.z-t.z,f=rx*ux+rz*uz;if(f>0&&f<18&&Math.abs(rx*-uz+rz*ux)<2.6)l=Math.min(l,f<6?0:(f-6)*.9)}}return l}
- function bumpMe(){if(!ok||foot)return 0;let m=0;for(const b of B){if(!b.r||Math.abs(b.x-me.x)>12||Math.abs(b.z-me.z)>12)continue;for(const p of b.P){p.y=me.y||0;m=Math.max(m,bump(me,p))}}return m}
+ function bumpMe(){if(!ok||foot)return 0;let m=0;for(const b of B){if(!b.r||Math.abs(b.x-me.x)>12||Math.abs(b.z-me.z)>12)continue;/* v105: ogni punto e' un pezzo di autobus largo 2,55 m, orientato come l'autobus */const P=b.P,L=Math.hypot(P[0].x-P[3].x,P[0].z-P[3].z)||1,yw=Math.atan2(-(P[0].z-P[3].z),P[0].x-P[3].x);for(const p of P){p.y=me.y||0;p.yaw=yw;p.hl=L/6+.25;p.hw=1.28;m=Math.max(m,bump(me,p))}}return m}
  return{init,tick,lim,bumpMe,B,RT,ST,get ok(){return ok}}})();
 /* ===== v88: pedoni piu' veri =====
    1) Attraversano sulle strisce pedonali (quelle di OpenStreetMap): arrivati al bordo aspettano il verde se c'e' un semaforo,
