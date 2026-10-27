@@ -51,5 +51,20 @@
  },
  "tuffo": {
   "file": "tuffo.mp3"
+ },
+ "carro_A": {
+  "file": "carro_A.mp3",
+  "giro": 11.65,
+  "pre": 0.15
+ },
+ "carro_B": {
+  "file": "carro_B.mp3",
+  "giro": 4.95,
+  "pre": 0.15
+ },
+ "cingoli": {
+  "file": "cingoli.mp3",
+  "giro": 8.65,
+  "pre": 0.15
  }
 }
