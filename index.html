@@ -5086,13 +5086,68 @@ const ISL={"a":[2497.89,1748.06,2498.6,1748.8,2499.66,1746.47,2498.6,1748.8,2500
  let tsd=.06,tsu=.03,tsm=6;const triS=(a,x1,z1,x2,z2,x3,z3,y,dp)=>{dp=dp||0;const d1=Math.hypot(x2-x1,z2-z1),d2=Math.hypot(x3-x2,z3-z2),d3=Math.hypot(x1-x3,z1-z3),m=Math.max(d1,d2,d3);if(dp<16&&m>tsm){const e1=EL(x1,z1),e2=EL(x2,z2),e3=EL(x3,z3),bd=(v,w)=>w-v>tsu||v-w>tsd;if(m>40||bd(EL((x1+x2)/2,(z1+z2)/2),(e1+e2)/2)||bd(EL((x2+x3)/2,(z2+z3)/2),(e2+e3)/2)||bd(EL((x1+x3)/2,(z1+z3)/2),(e1+e3)/2)||bd(EL((x1+x2+x3)/3,(z1+z2+z3)/3),(e1+e2+e3)/3)){if(m==d1){const mx=(x1+x2)/2,mz=(z1+z2)/2;triS(a,x1,z1,mx,mz,x3,z3,y,dp+1);triS(a,mx,mz,x2,z2,x3,z3,y,dp+1)}else if(m==d2){const mx=(x2+x3)/2,mz=(z2+z3)/2;triS(a,x1,z1,x2,z2,mx,mz,y,dp+1);triS(a,x1,z1,mx,mz,x3,z3,y,dp+1)}else{const mx=(x1+x3)/2,mz=(z1+z3)/2;triS(a,x1,z1,x2,z2,mx,mz,y,dp+1);triS(a,mx,mz,x2,z2,x3,z3,y,dp+1)}return}}tri(a,x1,z1,x2,z2,x3,z3,y)};
  function ribbon(p,w,y,a){{const q=[p[0],p[1]];for(let i=2;i<p.length;i+=2){const ax=p[i-2],az=p[i-1],dx=p[i]-ax,dz=p[i+1]-az,k=Math.max(1,Math.ceil(Math.hypot(dx,dz)/6));for(let s2=1;s2<=k;s2++)q.push(ax+dx*s2/k,az+dz*s2/k)}p=q}const n=p.length/2,hw=w/2,Lx=[],Lz=[],Rx=[],Rz=[];for(let i=0;i<n;i++){let ax,az,m=1;const i0=Math.max(0,i-1),i1=Math.min(n-1,i+1);const sx=p[2*i1]-p[2*i0],sz=p[2*i1+1]-p[2*i0+1],sl=Math.hypot(sx,sz)||1;ax=sx/sl;az=sz/sl;if(i>0&&i<n-1){const bx=p[2*i]-p[2*i-2],bz=p[2*i+1]-p[2*i-1],bl=Math.hypot(bx,bz)||1;m=1/Math.max(.55,(ax*bx+az*bz)/bl)}const nx=-az*hw*m,nz=ax*hw*m;Lx.push(p[2*i]+nx);Lz.push(p[2*i+1]+nz);Rx.push(p[2*i]-nx);Rz.push(p[2*i+1]-nz)}for(let i=0;i<n-1;i++){tri(a,Lx[i],Lz[i],Rx[i],Rz[i],Lx[i+1],Lz[i+1],y);tri(a,Rx[i],Rz[i],Rx[i+1],Rz[i+1],Lx[i+1],Lz[i+1],y)}}
  function dashes(w,off,wd,a,y,dl,gp){let ph=0;for(let i=0;i<w.p.length/2-1;i++){const x1=w.p[2*i],z1=w.p[2*i+1],x2=w.p[2*i+2],z2=w.p[2*i+3],L=Math.hypot(x2-x1,z2-z1);if(L<.01)continue;const ux=(x2-x1)/L,uz=(z2-z1)/L,nx=-uz*off,nz=ux*off;let s=-ph;while(s<L){const a0=Math.max(0,s),a1=Math.min(L,s+dl);if(a1>a0+.2){ribbon([x1+ux*a0+nx,z1+uz*a0+nz,x1+ux*a1+nx,z1+uz*a1+nz],wd,y,a)}s+=dl+gp}ph=(L-s+dl+gp)%(dl+gp);ph=(dl+gp-ph)%(dl+gp)}}
+/* ===== v120: marciapiedi rialzati (regola fissa di Simone, 31/10/2026: "i marciapiedi devono essere tutti rialzati rispetto alla strada, per sempre") =====
+   Prima l'asfalto (+7 cm) e il marciapiede (+6 cm) erano quasi alla stessa quota. Ora ai lati di ogni strada normale (classi 2-8) il marciapiede
+   e' una lastra a KH sopra l'asfalto, con il cordolo verticale verso la strada e le testate dove si interrompe.
+   - Pezzi da ~10 m lungo la via; un pezzo si salta se cade dentro un'altra strada (incroci), una piazza o una stradina di servizio: cosi' l'asfalto
+     degli incroci resta continuo e non ci sono gradini in mezzo alla carreggiata.
+   - Le vie rifatte a mano (SKIP) hanno i loro marciapiedi e cordoli: li' resta tutto com'era.
+   - KB119.h(x,z) = KH se il punto e' sopra un marciapiede rialzato, altrimenti 0: sommato a H e Hn, cosi' giocatore, pedoni e mezzi ci salgono sopra.
+   - Disegno: un pezzo di grafica ogni 400 m, visibile entro 650 m (tick). */
+window.KB119=(()=>{const KH=.14,Y0=.07,SEG=10,CELL=8;
+ const SKIP=new Set(['Via Enrico Toti','Via Antonio Sanna','Via Italia','Via Giulio II','Via dei Mandorli']);
+ const GRID=new Map(),CH=new Map(),M=[];let built=false,k=0,np=0;
+ const ck=(x,z)=>Math.floor(x/CELL)+','+Math.floor(z/CELL);
+ function addGrid(q){let x0=1e9,z0=1e9,x1=-1e9,z1=-1e9;for(let i=0;i<8;i+=2){x0=Math.min(x0,q[i]);x1=Math.max(x1,q[i]);z0=Math.min(z0,q[i+1]);z1=Math.max(z1,q[i+1])}
+  for(let a=Math.floor(x0/CELL);a<=Math.floor(x1/CELL);a++)for(let b=Math.floor(z0/CELL);b<=Math.floor(z1/CELL);b++){const kk=a+','+b;let l=GRID.get(kk);if(!l)GRID.set(kk,l=[]);l.push(q)}}
+ /* punto dentro il quadrilatero convesso q (4 vertici in ordine) */
+ function inQ(x,z,q){let s=0;for(let i=0;i<4;i++){const ax=q[2*i],az=q[2*i+1],bx=q[(2*i+2)%8],bz=q[(2*i+3)%8],c=(bx-ax)*(z-az)-(bz-az)*(x-ax);if(c===0)continue;const sg=c>0?1:-1;if(!s)s=sg;else if(sg!==s)return false}return true}
+ function h(x,z){const l=GRID.get(ck(x,z));if(!l)return 0;for(const q of l)if(inQ(x,z,q))return KH;return 0}
+ function chunk(x,z){const kk=Math.floor(x/400)+','+Math.floor(z/400);let o=CH.get(kk);if(!o)CH.set(kk,o={p:[],x:0,z:0,n:0});return o}
+ const P=(o,x,y,z)=>o.p.push(x,y,z);
+ /* quadrilatero verticale da (ax,az) a (bx,bz), da quota y0 a y1 sopra il terreno; nx,nz = verso dove deve guardare */
+ function wall(o,ax,az,bx,bz,y0,y1,nx,nz){const cx=(bz-az),cz=-(bx-ax);/* normale del giro a->b in alto */
+  if(cx*nx+cz*nz>=0){P(o,ax,y0,az);P(o,bx,y0,bz);P(o,bx,y1,bz);P(o,ax,y0,az);P(o,bx,y1,bz);P(o,ax,y1,az)}
+  else{P(o,bx,y0,bz);P(o,ax,y0,az);P(o,ax,y1,az);P(o,bx,y0,bz);P(o,ax,y1,az);P(o,bx,y1,bz)}}
+ function bad(x,z){try{if(rdist(x,z,0)<.05)return true;if(rdist(x,z,1)<.0)return true;if(typeof inPlaza==='function'&&inPlaza(x,z))return true}catch(e){}return x<1||z<1||x>WX-1||z>WZ-1}
+ /* chiamata dal ciclo delle strade al posto del nastro piatto; true = fatto (niente nastro piatto) */
+ function way(w,sw){if(w.c<2||w.c>8||(w.f&1)||sw<2||(w.n>=0&&SKIP.has(OSM.nm[w.n])))return false;
+  const hw=w.w/2,ow=sw/2,p=w.p;
+  for(const sd of[-1,1]){let prev=null;/* pezzo precedente tenuto (per la testata) */
+   for(let i=0;i+3<p.length;i+=2){const ax=p[i],az=p[i+1],bx=p[i+2],bz=p[i+3],L=Math.hypot(bx-ax,bz-az);if(L<.3)continue;
+    const ux=(bx-ax)/L,uz=(bz-az)/L,nx=-uz*sd,nz=ux*sd,n=Math.max(1,Math.ceil(L/SEG));
+    for(let s=0;s<n;s++){const t0=s/n*L,t1=(s+1)/n*L,x0=ax+ux*t0,z0=az+uz*t0,x1=ax+ux*t1,z1=az+uz*t1,mid=hw+ow/2;
+     let ok=true;for(const f of[.12,.5,.88]){const tx=x0+(x1-x0)*f+nx*mid,tz=z0+(z1-z0)*f+nz*mid;if(bad(tx,tz)){ok=false;break}}
+     /* bordo interno (cordolo) e bordo esterno */
+     const ix0=x0+nx*hw,iz0=z0+nz*hw,ix1=x1+nx*hw,iz1=z1+nz*hw,ex0=x0+nx*(hw+ow),ez0=z0+nz*(hw+ow),ex1=x1+nx*(hw+ow),ez1=z1+nz*(hw+ow);
+     if(!ok){if(prev){const o=chunk(prev.x,prev.z);wall(o,prev.ix,prev.iz,prev.ex,prev.ez,Y0,Y0+KH,ux,uz)}prev=null;continue}
+     const o=chunk(x0,z0),yt=Y0+KH;
+     /* lastra in alto (verso l'alto) */
+     const up=(q)=>{const a=q[0],b=q[1],c=q[2];const cy=(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);if(cy<0){P(o,a[0],yt,a[1]);P(o,b[0],yt,b[1]);P(o,c[0],yt,c[1])}else{P(o,a[0],yt,a[1]);P(o,c[0],yt,c[1]);P(o,b[0],yt,b[1])}};
+     up([[ix0,iz0],[ex0,ez0],[ex1,ez1]]);up([[ix0,iz0],[ex1,ez1],[ix1,iz1]]);
+     /* cordolo verso la strada */
+     wall(o,ix0,iz0,ix1,iz1,Y0-.01,yt,-nx,-nz);
+     /* testata all'inizio se il pezzo prima mancava */
+     if(!prev)wall(o,ix0,iz0,ex0,ez0,Y0,yt,-ux,-uz);
+     prev={ix:ix1,iz:iz1,ex:ex1,ez:ez1,x:x0,z:z0};
+     addGrid([ix0,iz0,ex0,ez0,ex1,ez1,ix1,iz1]);o.x+=x0;o.z+=z0;o.n++;np++}}
+   if(prev){const o=chunk(prev.x,prev.z);wall(o,prev.ix,prev.iz,prev.ex,prev.ez,Y0,Y0+KH,p[p.length-2]-p[p.length-4],p[p.length-1]-p[p.length-3])}}
+  return true}
+ function build(mat){if(built)return;built=true;
+  for(const o of CH.values()){if(!o.n)continue;const a=o.p;for(let i=0;i<a.length;i+=3)a[i+1]+=EL(a[i],a[i+2]);
+   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(a,3));g.computeVertexNormals();
+   const m=new THREE.Mesh(g,mat);m.receiveShadow=true;m.matrixAutoUpdate=false;m.userData.c=[o.x/o.n,o.z/o.n];scene.add(m);M.push(m)}
+  console.log('MODS marciapiedi rialzati: pezzi '+np+' grafica '+M.length)}
+ function tick(){if(k++%30)return;const x=cam.position.x,z=cam.position.z;for(const m of M)m.visible=Math.hypot(m.userData.c[0]-x,m.userData.c[1]-z)<650}
+ return{way,build,h,tick,KH,get n(){return np}}})();
+
  for(const w of WAYS){if(w.ax)continue;const c=w.c,br=w.f&1;
   if(c>=10){const a=arr(c==11?mCY:mFP);ribbon(w.p,Math.max(1.6,w.w),.062,a);continue}
   const sw=c==0||c==1?0:(c==9?1.4:3.4);
-  if(sw&&!br)ribbon(w.p,w.w+sw,.06,arr(mSW));
+  if(sw&&!br&&!KB119.way(w,sw))ribbon(w.p,w.w+sw,.06,arr(mSW));
   ribbon(w.p,w.w,.07,arr(br?mBR:mAS));
   if(w.w>=5.6&&c<=8&&!br||br&&w.w>=5.6){const a=arr(mLN);if(w.o==0&&c>=2||w.o==0&&c==0){dashes(w,0,.14,a,.075,3,6)}else if(w.o==1&&w.w>=7.2){const ln=Math.round(w.w/3.2);for(let l=1;l<ln;l++)dashes(w,-w.w/2+l*w.w/ln,.12,a,.075,3,6)}}}
- tsd=.5;for(const o of LUP){if(o.pz)continue;const wild=o.t==2||o.t==5||o.t==3;tsu=wild?.25:.03;tsm=wild?16:6;tsd=wild?1.5:.5;const sh=new THREE.Shape(),p=o.p;for(let i=0;i<p.length/2;i++)i?sh.lineTo(p[2*i],-p[2*i+1]):sh.moveTo(p[2*i],-p[2*i+1]);try{const g=new THREE.ShapeGeometry(sh).toNonIndexed();g.rotateX(-Math.PI/2);const pa=g.attributes.position.array,a=arr(mLU[o.t]);for(let i=0;i<pa.length;i+=9)triS(a,pa[i],pa[i+2],pa[i+3],pa[i+5],pa[i+6],pa[i+8],.015)}catch(e){}}tsd=.06;tsu=.03;tsm=6;
+ KB119.build(mSW);tsd=.5;for(const o of LUP){if(o.pz)continue;const wild=o.t==2||o.t==5||o.t==3;tsu=wild?.25:.03;tsm=wild?16:6;tsd=wild?1.5:.5;const sh=new THREE.Shape(),p=o.p;for(let i=0;i<p.length/2;i++)i?sh.lineTo(p[2*i],-p[2*i+1]):sh.moveTo(p[2*i],-p[2*i+1]);try{const g=new THREE.ShapeGeometry(sh).toNonIndexed();g.rotateX(-Math.PI/2);const pa=g.attributes.position.array,a=arr(mLU[o.t]);for(let i=0;i<pa.length;i+=9)triS(a,pa[i],pa[i+2],pa[i+3],pa[i+5],pa[i+6],pa[i+8],.015)}catch(e){}}tsd=.06;tsu=.03;tsm=6;
  {const a=arr(mLN);for(const ev of EVS){const e=ev.e,rx=-ev.uz,rz=ev.ux,l0=e.ow?-e.hw+.35:.3,l1=e.hw-.35;if(l1<=l0)continue;if(ev.k==1){for(let l=l0+.4;l<l1;l+=1.1)ribbon([ev.x+rx*l,ev.z+rz*l,ev.x+rx*(l+.55)-ev.ux*.01,ev.z+rz*(l+.55)],.45,.078,a)}else ribbon([ev.x+rx*l0,ev.z+rz*l0,ev.x+rx*l1,ev.z+rz*l1],.4,.078,a)}
   for(const zb of ZEB){const n=Math.max(2,Math.floor(zb.hw*2));for(let i=0;i<n;i++){const l=-zb.hw+.45+(2*zb.hw-.9)*(i+.5)/n,cx=zb.x-zb.uz*l,cz=zb.z+zb.ux*l;ribbon([cx-zb.ux*1.7,cz-zb.uz*1.7,cx+zb.ux*1.7,cz+zb.uz*1.7],.5,.078,a)}}}
  const mPZ2=mt(0xb7b3a6,-.4);for(let pi=0;pi<PLG.length;pi++)try{const p=PLG[pi],lo=X2.pz.has(pi),sh=new THREE.Shape();for(let i=0;i<p.length/2;i++)i?sh.lineTo(p[2*i],-p[2*i+1]):sh.moveTo(p[2*i],-p[2*i+1]);const g=new THREE.ShapeGeometry(sh).toNonIndexed();g.rotateX(-Math.PI/2);const pa=g.attributes.position.array,a=arr(lo?mPZ2:mPZ);for(let i=0;i<pa.length;i+=9)triS(a,pa[i],pa[i+2],pa[i+3],pa[i+5],pa[i+6],pa[i+8],lo?.01:.025)}catch(e){}
@@ -6529,8 +6584,8 @@ const AX33=(()=>{const LIFT=6.5,RAMP=95,key=(x,z)=>Math.round(x*5)+','+Math.roun
  }catch(e){console.warn('viadotto asse mediano',e)}
  return{dk,rail,hn,anchors,PCS,lifted,LIFT}})();
 
-const H=(x,z)=>{const b=H00(x,z)+RS(x,z);{const dk=AX33.dk(x,z);if(dk>b+.04&&HYv>dk-1.1)return dk}let h=b,s=-1,tn=null;for(const f of FT){const u=(x-f.ox)*f.dx;if(u<f.u0||u>f.u1||Math.abs(z-f.oz)>f.hw)continue;if(f.t==0){const q=(u-f.u0)/(f.u1-f.u0);h+=f.h*(f.d>0?q:1-q)}else if(f.t==2){const L=f.u1-f.u0,a=u-f.u0,yf=a<f.Lr?-f.D*a/f.Lr:a>L-f.Lr?-f.D*(L-a)/f.Lr:-f.D;if(a<f.uc||a>L-f.uc||HYv<yf+2.5)tn=yf}else if(HYv>=f.mn&&f.top>s)s=f.top}return tn!==null?tn:(s>=0?s:h)};
-const FR=FT.filter(f=>f.t==0),Hn=(x,z)=>{let h=H00(x,z)+RS(x,z);for(const f of FR){const u=(x-f.ox)*f.dx;if(u<f.u0||u>f.u1||Math.abs(z-f.oz)>f.hw)continue;const q=(u-f.u0)/(f.u1-f.u0);h+=f.h*(f.d>0?q:1-q)}return h};
+const H=(x,z)=>{const b=H00(x,z)+RS(x,z)+KB119.h(x,z);{const dk=AX33.dk(x,z);if(dk>b+.04&&HYv>dk-1.1)return dk}let h=b,s=-1,tn=null;for(const f of FT){const u=(x-f.ox)*f.dx;if(u<f.u0||u>f.u1||Math.abs(z-f.oz)>f.hw)continue;if(f.t==0){const q=(u-f.u0)/(f.u1-f.u0);h+=f.h*(f.d>0?q:1-q)}else if(f.t==2){const L=f.u1-f.u0,a=u-f.u0,yf=a<f.Lr?-f.D*a/f.Lr:a>L-f.Lr?-f.D*(L-a)/f.Lr:-f.D;if(a<f.uc||a>L-f.uc||HYv<yf+2.5)tn=yf}else if(HYv>=f.mn&&f.top>s)s=f.top}return tn!==null?tn:(s>=0?s:h)};
+const FR=FT.filter(f=>f.t==0),Hn=(x,z)=>{let h=H00(x,z)+RS(x,z)+KB119.h(x,z);for(const f of FR){const u=(x-f.ox)*f.dx;if(u<f.u0||u>f.u1||Math.abs(z-f.oz)>f.hw)continue;const q=(u-f.u0)/(f.u1-f.u0);h+=f.h*(f.d>0?q:1-q)}return h};
 const Hc=(x,z)=>{if(HYv>-2)return 1e9;for(const f of FT){if(f.t!=2)continue;const u=(x-f.ox)*f.dx;if(u<f.uc||u>f.u1-f.uc||Math.abs(z-f.oz)>7.4)continue;const a=u-f.u0,L=f.u1-f.u0,yf=a<f.Lr?-f.D*a/f.Lr:a>L-f.Lr?-f.D*(L-a)/f.Lr:-f.D;return Math.min(-.8,yf+f.clr)}return 1e9};
 const BK2=[];for(const f of FT){const a=f.ox+f.dx*f.u0,b=f.ox+f.dx*f.u1;if(f.t==0)BK2.push({x0:Math.min(a,b)-4,x1:Math.max(a,b)+4,z0:f.oz-f.hw-3,z1:f.oz+f.hw+3,ex:0,oz:f.oz});else if(f.t==2)BK2.push({x0:a-4,x1:a+f.uc+4,z0:f.oz-10,z1:f.oz+10,ex:0,oz:f.oz},{x0:b-f.uc-4,x1:b+4,z0:f.oz-10,z1:f.oz+10,ex:0,oz:f.oz})}
 const blk=(x,z)=>{for(const b of BK2)if(x>b.x0&&x<b.x1&&z>b.z0&&z<b.z1&&Math.abs(z-b.oz)>=b.ex)return true;return false};
@@ -10025,14 +10080,15 @@ const PV117=(()=>{let run=null,box=null;
    A OGNI VERSIONE: alzare V e AGGIUNGERE voci in L con v = numero di versione (non cancellare le vecchie).
    x,z = dove ti mette; lx,lz = verso dove guardi; p:1 = a piedi; ver:1 = da verificare. */
 const NOV115=(()=>{
- const V=119;
+ const V=120;
  const L=[
   {v:116,n:'Cortile interno (Via Fratelli Bandiera)',d:'Isolato rifatto con case separate e cortile col pavimento vero dalla foto (prato, piastrelle, terra)',x:2148,z:2127,lx:2160,lz:2110,p:1,ver:1},
   {v:116,n:'Cortile interno (Via Mons. Cogoni)',d:'Isolato rifatto con il cortile vero',x:1277,z:2393,lx:1290,lz:2380,p:1,ver:1},
   {v:116,n:'Cortile interno (Via Brancaleone Cugusi)',d:'Isolato rifatto con il cortile vero',x:3484,z:2039,lx:3495,lz:2025,p:1,ver:1},
   {v:116,n:'Cortile interno a Cagliari (Via Sant’Alenixedda)',d:'Isolato rifatto con il cortile vero',x:2031,z:3892,lx:2045,lz:3880,p:1,ver:1},
   {v:117,n:'Crepe e rattoppi sull’asfalto (Via Italia)',d:'L’asfalto ora ha crepe sottili e pezze rifatte, oltre alla grana',x:2912.7,z:1197,lx:2889,lz:1220,p:1,ver:1},
-  {v:119,n:'Menù dei mezzi scorrevole',d:'In orizzontale ora si vedono tutti i mezzi e la lista scorre col dito. Il gioco funziona anche in verticale',x:SPX,z:SPZ,lx:SPX+10,lz:SPZ,p:0,noVai:1}];
+  {v:119,n:'Menù dei mezzi scorrevole',d:'In orizzontale ora si vedono tutti i mezzi e la lista scorre col dito. Il gioco funziona anche in verticale',x:SPX,z:SPZ,lx:SPX+10,lz:SPZ,p:0,noVai:1},
+  {v:120,n:'Marciapiedi rialzati (Via Fratelli Bandiera)',d:'Su tutte le strade normali il marciapiede ora è 14 cm più alto dell’asfalto, con il cordolo. Ci sali anche a piedi e con l’auto',x:2120,z:2150,lx:2135,lz:2135,p:1,ver:1}];
  let W=null,shown=false,ok=false;
  const st=document.createElement('style');st.textContent='#n115{position:fixed;inset:0;z-index:13;display:none;align-items:center;justify-content:center;background:rgba(5,8,16,.55);font:700 14px "Trebuchet MS",system-ui,sans-serif;color:#fff}'+
   '#n115 .w{background:#141a26;border:1px solid #2c3850;border-radius:14px;padding:14px;width:min(340px,90vw);max-height:80vh;overflow:auto;display:flex;flex-direction:column;gap:8px}'+
@@ -10080,7 +10136,7 @@ const STEAL110=(()=>{
  return{take,vespa}})();
 
 
-GULL87.init();let lt86=0;try{BUS88.init();LUCI88.init();PIG88.init();PARK88.init();PED88.initDogs();PED88.initCats();FEN88.init();OFF88.init()}catch(e88){console.warn('v88',e88)}function loop(now){requestAnimationFrame(loop);try{const d86=Math.min(.1,Math.max(.001,(now-(lt86||now))/1000));lt86=now;HERO86.tick(now/1000,d86);HERO86.lambo();GULL87.tick(now/1000,d86)}catch(e){}{const t88=now/1000,d88=Math.min(.1,Math.max(.001,(now-(window.lt88||now))/1000));window.lt88=now;window.gt88=(window.gt88||0)+d88;for(const f of[()=>{if(!ANIM88.ok)ANIM88.init()},()=>BUS88.tick(t88,d88),()=>PED88.tick(t88,d88),()=>PIG88.tick(t88,d88),()=>PARK88.tick(t88),()=>DANNI88.tick(t88,d88),()=>LUCI88.tick(t88,d88),()=>VES88.tick(t88,d88),()=>FEN88.tick(t88,d88),()=>MEZ90.tick(t88,d88),()=>MET90.tick(t88,d88),()=>SOC90.tick(t88,d88),()=>ANI90.tick(t88,d88),()=>GOM90.tick(t88,d88),()=>LSND90.tick(),()=>STA91.tick(t88,d88),()=>POE91.tick(t88,d88),()=>TRN91.tick(t88,d88),()=>POR91.tick(t88,d88),()=>MER91.tick(t88),()=>FPS94.tick(t88),()=>MV102.tick(t88,d88),()=>LOC102.tick(),()=>VEST102.tick(),()=>ACQ103.tick(t88,d88),()=>MON103.tick(),()=>CAS103.tick(),()=>NEG104.tick(t88),()=>MARE104.tick(t88),()=>GF104.tick(t88,d88),()=>SND104.tick(t88,d88),()=>ERO107.tick(),()=>SND107.tick(),()=>POL107.tick(t88,d88),()=>SW107.tick(t88,d88),()=>WAT107.tick(t88),()=>ANF113.build(),()=>EXT113.tick(t88,d88),()=>COR115.tick(),()=>PV117.tick(t88,d88),()=>NOV115.tick(),()=>NOMI114.tick(t88),()=>SEG114.tick(),()=>PORTO108.tick()])try{f()}catch(e88){if(!window.e88n){window.e88n=1;console.warn('v88 tick',e88)}}}try{CAR83.tick(now/1000)}catch(e){}try{MONDO82.tick(now/1000);CHUNK82.tick(now/1000)}catch(e){}const dt=Math.max(.001,Math.min(.05,(now-last)/1000));last=now;if(!over&&!pz&&!inside)step(dt,now/1000);if(!pz&&!inside)gfStep(dt,now/1000);if(inside&&!pz)inStepS(dt,now/1000);venStepS(dt,now/1000);{const sg=QL.sg;sunG.visible=sg>0&&sunD.position.y>cam.position.y-20;moonG.visible=sg>0&&moonD.position.y>cam.position.y-20;if(sg>0){sunG.position.copy(sunD.position);moonG.position.copy(moonD.position);sunG.scale.setScalar(70*sg);moonG.scale.setScalar(45*sg);sunG.material.opacity=.35+.1*sg;moonG.material.opacity=.3}}if(wp>0){const hh=Math.min(5,Math.ceil(wp/2));bribeC=Math.max(100,hh*150);const tx='⭐ Paga e sparisci $'+bribeC;if(gwT!==tx){gwT=tx;$('gw').textContent=tx}if(gwD!=='block'){gwD='block';$('gw').style.display='block'}}else if(gwD!=='none'){gwD='none';$('gw').style.display='none'}
+GULL87.init();let lt86=0;try{BUS88.init();LUCI88.init();PIG88.init();PARK88.init();PED88.initDogs();PED88.initCats();FEN88.init();OFF88.init()}catch(e88){console.warn('v88',e88)}function loop(now){requestAnimationFrame(loop);try{const d86=Math.min(.1,Math.max(.001,(now-(lt86||now))/1000));lt86=now;HERO86.tick(now/1000,d86);HERO86.lambo();GULL87.tick(now/1000,d86)}catch(e){}{const t88=now/1000,d88=Math.min(.1,Math.max(.001,(now-(window.lt88||now))/1000));window.lt88=now;window.gt88=(window.gt88||0)+d88;for(const f of[()=>{if(!ANIM88.ok)ANIM88.init()},()=>BUS88.tick(t88,d88),()=>PED88.tick(t88,d88),()=>PIG88.tick(t88,d88),()=>PARK88.tick(t88),()=>DANNI88.tick(t88,d88),()=>LUCI88.tick(t88,d88),()=>VES88.tick(t88,d88),()=>FEN88.tick(t88,d88),()=>MEZ90.tick(t88,d88),()=>MET90.tick(t88,d88),()=>SOC90.tick(t88,d88),()=>ANI90.tick(t88,d88),()=>GOM90.tick(t88,d88),()=>LSND90.tick(),()=>STA91.tick(t88,d88),()=>POE91.tick(t88,d88),()=>TRN91.tick(t88,d88),()=>POR91.tick(t88,d88),()=>MER91.tick(t88),()=>FPS94.tick(t88),()=>MV102.tick(t88,d88),()=>LOC102.tick(),()=>VEST102.tick(),()=>ACQ103.tick(t88,d88),()=>MON103.tick(),()=>CAS103.tick(),()=>NEG104.tick(t88),()=>MARE104.tick(t88),()=>GF104.tick(t88,d88),()=>SND104.tick(t88,d88),()=>ERO107.tick(),()=>SND107.tick(),()=>POL107.tick(t88,d88),()=>SW107.tick(t88,d88),()=>WAT107.tick(t88),()=>ANF113.build(),()=>EXT113.tick(t88,d88),()=>COR115.tick(),()=>PV117.tick(t88,d88),()=>KB119.tick(),()=>NOV115.tick(),()=>NOMI114.tick(t88),()=>SEG114.tick(),()=>PORTO108.tick()])try{f()}catch(e88){if(!window.e88n){window.e88n=1;console.warn('v88 tick',e88)}}}try{CAR83.tick(now/1000)}catch(e){}try{MONDO82.tick(now/1000);CHUNK82.tick(now/1000)}catch(e){}const dt=Math.max(.001,Math.min(.05,(now-last)/1000));last=now;if(!over&&!pz&&!inside)step(dt,now/1000);if(!pz&&!inside)gfStep(dt,now/1000);if(inside&&!pz)inStepS(dt,now/1000);venStepS(dt,now/1000);{const sg=QL.sg;sunG.visible=sg>0&&sunD.position.y>cam.position.y-20;moonG.visible=sg>0&&moonD.position.y>cam.position.y-20;if(sg>0){sunG.position.copy(sunD.position);moonG.position.copy(moonD.position);sunG.scale.setScalar(70*sg);moonG.scale.setScalar(45*sg);sunG.material.opacity=.35+.1*sg;moonG.material.opacity=.3}}if(wp>0){const hh=Math.min(5,Math.ceil(wp/2));bribeC=Math.max(100,hh*150);const tx='⭐ Paga e sparisci $'+bribeC;if(gwT!==tx){gwT=tx;$('gw').textContent=tx}if(gwD!=='block'){gwD='block';$('gw').style.display='block'}}else if(gwD!=='none'){gwD='none';$('gw').style.display='none'}
 if(wp>0&&!over){let near=0;for(const c of cops)if(Math.hypot(c.x-tg.x,c.z-tg.z)<150){near=1;break}hideT=near?0:hideT+dt;if(hideT>10){wp=Math.max(0,wp-dt*1.5);if(!hideN){hideN=1;msg('Ti sei nascosto: le stelle stanno calando...')}}}else{hideT=0;hideN=0}
 {const e=foot?1:0;if(entS!==e){entS=e;entB.innerHTML=e?'<span>🚗</span><small>Sali</small>':'<span>⏏</span><small>Esci</small>'}}
 if(!foot)aim=0;if(!aim)aimP*=.85;{const v=foot?'':'none';if(aimB.style.display!==v)aimB.style.display=v}const nnT=Math.min(1,QR.ha.material.opacity/.7);ren.toneMappingExposure=QL.ex*(1-.14*nnT);moonL.intensity=nnT*.5;moonL.position.set(tg.x-30,60+(tg.y||0),tg.z+40);moonL.target.position.set(tg.x,tg.y||0,tg.z);fillL.intensity=nnT*1.8;fillL.position.set(tg.x,(tg.y||0)+4,tg.z);$('xh').style.display=((aim&&foot||!foot&&me.kind=='tank')&&!over&&!pz)?'block':'none';
