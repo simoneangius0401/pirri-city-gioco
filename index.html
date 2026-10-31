@@ -37,7 +37,7 @@ html,body{height:100%;margin:0;background:#0b0e14;overflow:hidden;touch-action:n
 #xh::after{content:"";position:absolute;left:50%;top:50%;width:5px;height:5px;margin:-2.5px;background:#ff3b3b;border-radius:50%}
 #vig{position:fixed;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 55%,rgba(0,0,0,.85) 100%)}
 #menu{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(5,8,16,.7);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:5}
-.mc{background:#141a26;border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:18px;width:min(92vw,420px);color:#fff;text-align:center;font-size:20px}
+.mc{background:#141a26;border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:18px;width:min(92vw,420px);color:#fff;text-align:center;font-size:20px;max-height:calc(100dvh - 24px);max-height:calc(100vh - 24px);overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;box-sizing:border-box}@media (orientation:landscape) and (max-height:600px){.mc{width:min(94vw,760px);padding:10px 14px;font-size:16px}.mc .vg{grid-template-columns:repeat(5,1fr);gap:7px;margin:8px 0}.mc .vg button{padding:8px 4px;font-size:13px}.mc .vg i{font-size:26px}}
 .vg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}.vg button,#mx{background:#1f2a40;border:1px solid rgba(255,255,255,.25);border-radius:14px;color:#fff;padding:14px 6px;font:700 15px "Trebuchet MS",system-ui,sans-serif;display:flex;flex-direction:column;gap:4px;align-items:center}
 .vg i{font-style:normal;font-size:34px}.vg small{font-size:11px;opacity:.7;font-weight:400}#mx{width:100%;background:#2b3550}
 #over{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,14,30,.75);color:#fff;text-align:center;gap:8px;padding:20px}
@@ -10025,13 +10025,14 @@ const PV117=(()=>{let run=null,box=null;
    A OGNI VERSIONE: alzare V e AGGIUNGERE voci in L con v = numero di versione (non cancellare le vecchie).
    x,z = dove ti mette; lx,lz = verso dove guardi; p:1 = a piedi; ver:1 = da verificare. */
 const NOV115=(()=>{
- const V=118;
+ const V=119;
  const L=[
   {v:116,n:'Cortile interno (Via Fratelli Bandiera)',d:'Isolato rifatto con case separate e cortile col pavimento vero dalla foto (prato, piastrelle, terra)',x:2148,z:2127,lx:2160,lz:2110,p:1,ver:1},
   {v:116,n:'Cortile interno (Via Mons. Cogoni)',d:'Isolato rifatto con il cortile vero',x:1277,z:2393,lx:1290,lz:2380,p:1,ver:1},
   {v:116,n:'Cortile interno (Via Brancaleone Cugusi)',d:'Isolato rifatto con il cortile vero',x:3484,z:2039,lx:3495,lz:2025,p:1,ver:1},
   {v:116,n:'Cortile interno a Cagliari (Via Sant’Alenixedda)',d:'Isolato rifatto con il cortile vero',x:2031,z:3892,lx:2045,lz:3880,p:1,ver:1},
-  {v:117,n:'Crepe e rattoppi sull’asfalto (Via Italia)',d:'L’asfalto ora ha crepe sottili e pezze rifatte, oltre alla grana',x:2912.7,z:1197,lx:2889,lz:1220,p:1,ver:1}];
+  {v:117,n:'Crepe e rattoppi sull’asfalto (Via Italia)',d:'L’asfalto ora ha crepe sottili e pezze rifatte, oltre alla grana',x:2912.7,z:1197,lx:2889,lz:1220,p:1,ver:1},
+  {v:119,n:'Menù dei mezzi scorrevole',d:'In orizzontale ora si vedono tutti i mezzi e la lista scorre col dito. Il gioco funziona anche in verticale',x:SPX,z:SPZ,lx:SPX+10,lz:SPZ,p:0,noVai:1}];
  let W=null,shown=false,ok=false;
  const st=document.createElement('style');st.textContent='#n115{position:fixed;inset:0;z-index:13;display:none;align-items:center;justify-content:center;background:rgba(5,8,16,.55);font:700 14px "Trebuchet MS",system-ui,sans-serif;color:#fff}'+
   '#n115 .w{background:#141a26;border:1px solid #2c3850;border-radius:14px;padding:14px;width:min(340px,90vw);max-height:80vh;overflow:auto;display:flex;flex-direction:column;gap:8px}'+
@@ -10044,10 +10045,10 @@ const NOV115=(()=>{
  /* dopo = mostra le voci con versione maggiore di questo numero */
  function apri(dopo){const Q=L.filter(o=>o.v>(dopo==null?V-4:dopo)).sort((a,b)=>b.v-a.v);if(!Q.length)return;
   if(!W){W=document.createElement('div');W.id='n115';document.body.appendChild(W);W.addEventListener('pointerdown',e=>{if(e.target===W)W.style.display='none'})}
-  W.innerHTML='<div class="w"><b>🆕 Novità</b><small>Tocca Vai per andare subito sul posto.</small>'+Q.map((o,i)=>'<div class="r"><div><span class="n">v'+o.v+'</span> '+o.n+'<small>'+o.d+'</small>'+(o.ver?'<span class="t">da verificare: se qualcosa non va usa 📍 Segnala</span>':'')+'</div><div class="v" data-i="'+i+'">Vai</div></div>').join('')+'<div class="x">Chiudi</div></div>';
+  W.innerHTML='<div class="w"><b>🆕 Novità</b><small>Tocca Vai per andare subito sul posto.</small>'+Q.map((o,i)=>'<div class="r"><div><span class="n">v'+o.v+'</span> '+o.n+'<small>'+o.d+'</small>'+(o.ver?'<span class="t">da verificare: se qualcosa non va usa 📍 Segnala</span>':'')+'</div>'+(o.noVai?'':'<div class="v" data-i="'+i+'">Vai</div>')+'</div>').join('')+'<div class="x">Chiudi</div></div>';
   W.querySelectorAll('[data-i]').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();W.style.display='none';vai(Q[+b.dataset.i])}));
   W.querySelector('.x').addEventListener('pointerdown',e=>{e.stopPropagation();W.style.display='none'});W.style.display='flex'}
- function tick(){if(!ok){try{UI107.G.gioco.unshift(['🆕 Novità',()=>{UI107.show(false);apri(null)}]);for(const o of L)if(o.v>V-4)LM.push({n:'🆕 '+o.n,k:'p',ic:'🆕',c:'#ff4fd8',x:o.lx,z:o.lz});ok=true}catch(e){}}
+ function tick(){if(!ok){try{UI107.G.gioco.unshift(['🆕 Novità',()=>{UI107.show(false);apri(null)}]);for(const o of L)if(o.v>V-4&&!o.noVai)LM.push({n:'🆕 '+o.n,k:'p',ic:'🆕',c:'#ff4fd8',x:o.lx,z:o.lz});ok=true}catch(e){}}
   /* appena il gioco e' pronto: le novita' non ancora viste (vecchio formato "v116" -> 116; mai viste -> ultime 4 versioni) */
   if(!shown&&typeof AVV107!=='undefined'&&AVV107.done){shown=true;let sv='';try{sv=localStorage.getItem('pc3d_nov')||''}catch(e){}
    let seen=parseInt(String(sv).replace(/[^0-9]/g,''),10);if(!(seen>0))seen=V-4;
