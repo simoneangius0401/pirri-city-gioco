@@ -38,18 +38,32 @@
      const A=q(t0),Bq=q(t1);if(skip&&(skip(A[0]+nx*off,A[2]+nz*off)||skip(Bq[0]+nx*off,Bq[2]+nz*off)))continue;
      const v=[[A[0]+nx*(off-hw),A[1]+y0,A[2]+nz*(off-hw)],[A[0]+nx*(off+hw),A[1]+y0,A[2]+nz*(off+hw)],[Bq[0]+nx*(off+hw),Bq[1]+y0,Bq[2]+nz*(off+hw)],[Bq[0]+nx*(off-hw),Bq[1]+y0,Bq[2]+nz*(off-hw)]];
      for(const i of[0,1,2,0,2,3]){R.p.push(...v[i]);R.n.push(0,1,0);R.u.push(0,0);R.c.push(...C)}}}};
+  /* v128 (regola fissa 8): cordolo verticale del marciapiede, dal bordo strada fino a +25 cm */
+  const kerb=(pts,off,y0,y1,col,skip)=>{const C=rgb(col),sg=off>0?1:-1;
+   for(let k=0;k<pts.length-1;k++){const a=pts[k],b=pts[k+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]);if(L<.05)continue;const ux=(b[0]-a[0])/L,uz=(b[1]-a[1])/L,nx=-uz,nz=ux,ns=Math.max(1,Math.ceil(L/8));
+    for(let s=0;s<ns;s++){const t0=s/ns,t1=(s+1)/ns,q=t=>{const x=a[0]+(b[0]-a[0])*t,z=a[1]+(b[1]-a[1])*t;return[x+nx*off,ht(x,z),z+nz*off]};const A=q(t0),Bq=q(t1);
+     if(skip&&(skip(A[0]+nx*sg*.8,A[2]+nz*sg*.8)||skip(Bq[0]+nx*sg*.8,Bq[2]+nz*sg*.8)))continue;
+     const v=[[A[0],A[1]+y0,A[2]],[Bq[0],Bq[1]+y0,Bq[2]],[Bq[0],Bq[1]+y1,Bq[2]],[A[0],A[1]+y1,A[2]]];
+     for(const i of[0,1,2,0,2,3]){R.p.push(...v[i]);R.n.push(-nx*sg,0,-nz*sg);R.u.push(0,0);R.c.push(...C)}}}};
   const dense=d.b.length>25;
   RW.sort((a,b)=>b.c-a.c);
   for(const r of RW){const c=r.c,lift=r.br?.35:.06+(20-Math.min(c,20))*.004;
    if(c==20){rib(r.P,1.6,0,lift,COL[20]);rib(r.P,.05,.72,lift+.12,0x8f8f8f);rib(r.P,.05,-.72,lift+.12,0x8f8f8f);continue}
    rib(r.P,r.w/2,0,lift,COL[c]||0x48494c);
    if(c<=7&&r.w>=5.5){if(c<=1){rib(r.P,.08,r.w/2-.35,lift+.012,0xe8e8e2);rib(r.P,.08,-r.w/2+.35,lift+.012,0xe8e8e2)}else rib(r.P,.07,0,lift+.012,0xe8e8e2,1)}
-   if(dense&&c>=2&&c<=7&&!r.br){const sw=1.7,so=r.w/2+sw/2;const sk2=(x,z)=>onOther(x,z,r);rib(r.P,sw/2,so,lift+.14,0xc7c1b4,0,r,sk2);rib(r.P,sw/2,-so,lift+.14,0xc7c1b4,0,r,sk2)}}
+   if(dense&&c>=2&&c<=7&&!r.br){const sw=1.7,so=r.w/2+sw/2;const sk2=(x,z)=>onOther(x,z,r);rib(r.P,sw/2,so,lift+.25,0xc7c1b4,0,r,sk2);rib(r.P,sw/2,-so,lift+.25,0xc7c1b4,0,r,sk2);kerb(r.P,r.w/2,lift,lift+.25,0xa9a59c,sk2);kerb(r.P,-r.w/2,lift,lift+.25,0xa9a59c,sk2)}}
   out.road=R.f();
   // --- edifici ---
   const W=new B(),RF=new B(),boxes=[];const Wd=2048,Hh=1024,RH=204;
   const quad=(x0,z0,x1,z1,a0,a1,b0,b1,nx,nz,col,row,v)=>{const e=2/Wd,u0=v/8+e,u1=(v+1)/8-e,vb=1-(row+1)*RH/Hh+1.5/Hh,vt=1-row*RH/Hh-1.5/Hh;
    W.p.push(x0,a0,z0,x1,a1,z1,x1,b1,z1,x0,a0,z0,x1,b1,z1,x0,b0,z0);W.u.push(u0,vb,u1,vb,u1,vt,u0,vb,u1,vt,u0,vt);for(let i=0;i<6;i++){W.n.push(nx,0,nz);W.c.push(col[0],col[1],col[2])}};
+  /* v128: finestre e balconi per le finestre 3D vicine (FIN127): [x,y,z,nx,nz,w,h,tipo] e [x,y,z,nx,nz,w,parapetto] */
+  const WN=[],BN=[],WU=[[[1.6,1,1.15,1.45],[5.7,1,1.15,1.45]],[[1.4,.1,1.1,2.3,1],[5.6,1,1.15,1.45]],[[.9,1,1.05,1.45],[3.7,1,1.05,1.45],[6.5,1,1.05,1.45]],[[1.6,.1,1.1,2.3,1],[5.8,.1,1.1,2.3,1]],
+   [[.9,1,1.05,1.45],[3.7,.1,1.1,2.3,1],[6.5,1,1.05,1.45]],[[1.3,.1,1.1,2.3,1],[5.9,.1,1.1,2.3,1]],[[2,1,1.1,1.45],[5.4,1,1.1,1.45]]],
+   WG=[[[5,1.05,1.15,1.4]],[],[[1,1.05,1.1,1.4],[6.4,1.05,1.1,1.4]],[],[[3.7,1.05,1.1,1.4]],[],[]],WB=[[],[[.9,2.1]],[],[[.8,6.9]],[[3,2.5]],[[.8,2.1],[5.4,2.1]],[]];
+  const win128=(x0,z0,x1,z1,g0,top,fl,nx,nz,v)=>{const L=Math.hypot(x1-x0,z1-z0),dx=(x1-x0)/L,dz=(z1-z0)/L,su=L/8.5,fh=(top-g0)/fl,sv=fh/3.2;if(fh<2.2||fl>12)return;const y0=g0;
+   for(let f=0;f<fl;f++){for(const q of(f==0?WG[v]:WU[v])){const tc=(q[0]+q[2]/2)*su,x=x0+dx*tc,z=z0+dz*tc,op=hs(x*3.1+z*7.7+f)<.3?16:0;WN.push(x,y0+f*fh+q[1]*sv,z,nx,nz,q[2]*su,q[3]*sv,v+(q[4]?8:0)+op)}
+    if(f>0)for(const b of WB[v]){const tc=(b[0]+b[1]/2)*su;BN.push(x0+dx*tc,y0+f*fh,z0+dz*tc,nx,nz,(b[1]+.3)*su,v%2)}}};
   let bi=0;
   for(const b of d.b){bi++;const H=b[0]/10,rc=b[1],fl=b[2],sp=fl&7,n=b[3],P=[];for(let k=0;k<n;k++)P.push(ox+b[4+2*k]/10,oz+b[5+2*k]/10);
    let ar=0;for(let i=0;i<n;i++){const j=(i+1)%n;ar+=P[2*i]*P[2*j+1]-P[2*j]*P[2*i+1]}if(ar<0){const Q2=[];for(let i=n-1;i>=0;i--)Q2.push(P[2*i],P[2*i+1]);P.length=0;P.push(...Q2)}
@@ -60,6 +74,7 @@
     const k=plain||L<3.4?1:Math.max(1,Math.round(L/(7+hs(sb+i)*3)));
     for(let s=0;s<k;s++){const t0=s/k,t1=(s+1)/k,x0=ax+(bx-ax)*t0,z0=az+(bz-az)*t0,x1=ax+(bx-ax)*t1,z1=az+(bz-az)*t1,g0=ht(x0,z0)-.3,g1=ht(x1,z1)-.3,sd=small?sb:sb+i*17.3+s*5.1;
      const col=base||rgb(PAL[Math.floor(hs(sd)*PAL.length)]),v=plain?7:Math.floor(hs(sd+3.3+i+s)*7);
+     if(!plain&&v<7&&lod)win128(x0,z0,x1,z1,g0,top,floors,nx,nz,v);
      if(floors<=3||plain)quad(x0,z0,x1,z1,g0,g1,top,top,nx,nz,col,plain?0:floors-1,v);
      else{const T0=top-g0,T1=top-g1;let f=3;quad(x0,z0,x1,z1,g0,g1,g0+T0*3/floors,g1+T1*3/floors,nx,nz,col,2,v);while(f<floors){const c=floors-f>=2?2:1;quad(x0,z0,x1,z1,g0+T0*f/floors,g1+T1*f/floors,g0+T0*(f+c)/floors,g1+T1*(f+c)/floors,nx,nz,col,c==2?4:3,v);f+=c}}}}
    // tetto piano col colore vero preso dalla foto
@@ -70,7 +85,7 @@
    // urti: strisce di 3 m lungo z
    let zmin=1e9,zmax=-1e9;for(let i=0;i<n;i++){zmin=Math.min(zmin,P[2*i+1]);zmax=Math.max(zmax,P[2*i+1])}
    for(let zc=zmin+1.5;zc<zmax+1.4;zc+=3){const zz=Math.min(zc,zmax-.01),xs=[];for(let i=0;i<n;i++){const j=(i+1)%n,az=P[2*i+1],bz=P[2*j+1];if((az<=zz)!=(bz<=zz)){xs.push(P[2*i]+(zz-az)/(bz-az)*(P[2*j]-P[2*i]))}}xs.sort((a,b)=>a-b);for(let k=0;k+1<xs.length;k+=2)if(xs[k+1]-xs[k]>.3)boxes.push(xs[k],zz-1.5,xs[k+1],zz+1.5,top)}}
-  out.walls=W.f();out.roofs=RF.f();out.boxes=new Float32Array(boxes);
+  out.walls=W.f();out.roofs=RF.f();out.boxes=new Float32Array(boxes);out.win=new Float32Array(WN);out.bal=new Float32Array(BN);
   // --- alberi ---
   const tr=[],tstep=lod?2:6;for(let k=0;k+1<d.t.length;k+=tstep){const x=ox+d.t[k]/10,z=oz+d.t[k+1]/10;tr.push(x,ht(x,z),z,.8+hs(x*3.1+z)*.7)}out.trees=new Float32Array(tr);
   return out}
@@ -80,6 +95,6 @@
     let pr=BC.get(bk);if(!pr){pr=fetch(m.url+'b_'+bk+'.json').then(r=>r.json());BC.set(bk,pr);if(BC.size>10)BC.delete(BC.keys().next().value)}
     const d=Object.assign({},(await pr)[m.key]);d.key=m.key;d.core=m.core;
     let img=null;if(d.img){try{const bs=atob(d.img),u8=new Uint8Array(bs.length);for(let q=0;q<bs.length;q++)u8[q]=bs.charCodeAt(q);img=await createImageBitmap(new Blob([u8],{type:'image/jpeg'}))}catch(er){}}delete d.img;
-    const o=build(d,m.lod);o.img=img;o.data=d;const tf=[];for(const k of['ground','water','road','walls','roofs'])if(o[k])for(const a of Object.values(o[k]))tf.push(a.buffer);tf.push(o.boxes.buffer,o.trees.buffer);if(img)tf.push(img);
+    const o=build(d,m.lod);o.img=img;o.data=d;const tf=[];for(const k of['ground','water','road','walls','roofs'])if(o[k])for(const a of Object.values(o[k]))tf.push(a.buffer);tf.push(o.boxes.buffer,o.trees.buffer,o.win.buffer,o.bal.buffer);if(img)tf.push(img);
     postMessage(o,tf)}catch(er){postMessage({key:m.key,err:String(er)})}}
-  if(m.t=='lod'){try{const o=build(Object.assign({},m.d,{g:0}),m.lod);const tf=[];for(const k of['road','walls','roofs'])for(const a of Object.values(o[k]))tf.push(a.buffer);tf.push(o.boxes.buffer,o.trees.buffer);delete o.ground;delete o.water;o.relod=1;postMessage(o,tf)}catch(er){postMessage({key:m.key,err:String(er)})}}};
+  if(m.t=='lod'){try{const o=build(Object.assign({},m.d,{g:0}),m.lod);const tf=[];for(const k of['road','walls','roofs'])for(const a of Object.values(o[k]))tf.push(a.buffer);tf.push(o.boxes.buffer,o.trees.buffer,o.win.buffer,o.bal.buffer);delete o.ground;delete o.water;o.relod=1;postMessage(o,tf)}catch(er){postMessage({key:m.key,err:String(er)})}}};
