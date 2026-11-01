@@ -7044,7 +7044,7 @@ for(const w of WAYS){if(w.c<2||w.c>8)continue;let side=1;for(let q=10;q<w.len;q+
 
 const lp=LP.filter(p=>p[0]>0&&p[0]<WX&&p[1]>0&&p[1]<WZ&&!onDG(p[0],p[1],2)&&!(p[1]>788&&p[1]<1445&&Math.abs(Math.abs(p[0]-1200)-9.5)<.1)),lamp=new THREE.InstancedMesh(new THREE.CylinderGeometry(.12,.15,7,6),new THREE.MeshStandardMaterial({color:0x2c2f36}),lp.length),head=new THREE.InstancedMesh(new THREE.SphereGeometry(.5,5,3),new THREE.MeshBasicMaterial({color:0xfff0c8}),lp.length),pool=new THREE.InstancedMesh(new THREE.CircleGeometry(8,9).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0xffd9a0,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false}),lp.length),dm=new THREE.Object3D();
 lp.forEach((p,n)=>{const e=H00(p[0],p[1]);dm.position.set(p[0],3.5+e,p[1]);dm.updateMatrix();lamp.setMatrixAt(n,dm.matrix);dm.position.y=7+e;dm.updateMatrix();head.setMatrixAt(n,dm.matrix);dm.position.y=.09+e;dm.updateMatrix();pool.setMatrixAt(n,dm.matrix)});
-[lamp,head,pool].forEach(o=>{o.frustumCulled=false;scene.add(o)});window.LP125={lp,lamp,head};
+[lamp,head,pool].forEach(o=>{o.frustumCulled=false;scene.add(o)});window.LP125={lp,lamp,head,pool};
 scene.children.forEach(o=>{if(o.isMesh&&!o.isInstancedMesh){o.updateMatrix();o.matrixAutoUpdate=false}});
 const nearLots=(x,z)=>{const ci=Math.floor(x/P),cj=Math.floor(z/P),o=[];for(let i=ci-1;i<=ci+1;i++)for(let j=cj-1;j<=cj+1;j++){const l=G[i+','+j];if(l)o.push(...l)}return o};
 {const add=[];for(const k in G){const [ci,cj]=k.split(',').map(Number);for(const b of G[k]){const i0=Math.floor(b.x0/P),i1=Math.floor(b.x1/P),j0=Math.floor(b.z0/P),j1=Math.floor(b.z1/P);if(i1-i0>40||j1-j0>40)continue;for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++)if(i!==ci||j!==cj)add.push(i+','+j,b)}}for(let q=0;q<add.length;q+=2)(G[add[q]]||(G[add[q]]=[])).push(add[q+1]);window.REG107=add.length/2}
@@ -10445,11 +10445,31 @@ const ARR125=(()=>{
   if(++tk%15)return;let cx=0,cz=0;try{cx=cam.position.x;cz=cam.position.z}catch(e){return}
   if(Math.hypot(cx-lastX,cz-lastZ)<12&&loaded===lastL)return;lastL=loaded;lastX=cx;lastZ=cz;
   /* i lampioni in 3D nascondono il palo semplice; la luce (testa) va in cima al braccio */
-  const lm=LP125.lamp,hd=LP125.head;  for(const i of hid){const p=L.lamp[i],e=gy(p.x,p.z);o.rotation.set(0,0,0);o.scale.set(1,1,1);o.position.set(p.x,3.5+e,p.z);o.updateMatrix();lm.setMatrixAt(i,o.matrix);o.position.y=7+e;o.updateMatrix();hd.setMatrixAt(i,o.matrix)}
+  const lm=LP125.lamp,hd=LP125.head;  for(const i of hid){const p=L.lamp[i],e=gy(p.x,p.z);o.rotation.set(0,0,0);o.scale.set(1,1,1);o.position.set(p.x,3.5+e,p.z);o.updateMatrix();lm.setMatrixAt(i,o.matrix);o.position.y=7+e;o.updateMatrix();hd.setMatrixAt(i,o.matrix);if(LP125.pool){o.position.y=.09+e;o.updateMatrix();LP125.pool.setMatrixAt(i,o.matrix)}}
   const near=fill('lamp',L.lamp,230,cx,cz);hid=near.map(p=>p.i);const arm=M.lamp.arm||0;
   for(const p of near){lm.setMatrixAt(p.i,Z);const ya=-p.a;o.position.set(p.x+Math.cos(ya)*arm*.92,p.y+M.lamp.h-.35,p.z+Math.sin(ya)*arm*.92);o.rotation.set(0,0,0);o.scale.set(.45,.25,.45);o.updateMatrix();hd.setMatrixAt(p.i,o.matrix)}
   lm.instanceMatrix.needsUpdate=true;hd.instanceMatrix.needsUpdate=true;
+  /* v130: luce di notte. La pozza di luce va sotto la lampada (in cima al braccio), con bordo morbido; un bagliore sulla lampada. Anche nel mondo grande. */
+  try{lux(near,arm)}catch(e){console.warn('luci130',e)}
   fill('bench',L.bench,150,cx,cz);fill('bin',L.bin,150,cx,cz);fill('rec',L.rec,150,cx,cz)}
+ let LX=null;const t4=new THREE.Matrix4(),v3=new THREE.Vector3();
+ function grad(a,b){const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d'),g=x.createRadialGradient(64,64,0,64,64,64);g.addColorStop(0,a);g.addColorStop(.35,b);g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(0,0,128,128);return new THREE.CanvasTexture(c)}
+ function lux(near,arm){const pl=LP125.pool;if(!pl)return;
+  if(!LX){/* pozza: cerchio con sfumatura (prima era un disco a bordo netto) */pl.geometry=new THREE.CircleGeometry(9,28).rotateX(-Math.PI/2);pl.material.map=grad('rgba(255,236,200,1)','rgba(255,214,150,.55)');pl.material.color.setRGB(2.1,1.75,1.2);pl.material.needsUpdate=true;
+   const wp=new THREE.InstancedMesh(pl.geometry,pl.material,260);wp.count=0;wp.frustumCulled=false;wp.userData.m82=1;scene.add(wp);
+   const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(new Float32Array(600*3),3));pg.setDrawRange(0,0);
+   const pm=new THREE.PointsMaterial({size:3.4,map:grad('rgba(255,250,235,1)','rgba(255,215,150,.35)'),color:0xffe2b0,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,sizeAttenuation:true,opacity:0,fog:false});
+   const pts=new THREE.Points(pg,pm);pts.frustumCulled=false;pts.userData.m82=1;scene.add(pts);LX={wp,pts,pg,pm};
+   /* il bagliore segue la stessa notte delle pozze (la base le accende con pool.material.opacity = notte*0.24) */
+   pts.onBeforeRender=function(){pm.opacity=Math.min(1,pl.material.opacity/.24)*.9}}
+  const pos=LX.pg.attributes.position.array;let np=0;
+  for(const p of near){const ya=-p.a,tx=p.x+Math.cos(ya)*arm*.9,tz=p.z+Math.sin(ya)*arm*.9;o.position.set(tx,(p.y||0)+.1,tz);o.rotation.set(0,0,0);o.scale.set(1,1,1);o.updateMatrix();pl.setMatrixAt(p.i,o.matrix);
+   if(np<600){pos[3*np]=tx;pos[3*np+1]=(p.y||0)+M.lamp.h-.45;pos[3*np+2]=tz;np++}}
+  pl.instanceMatrix.needsUpdate=true;
+  /* mondo grande: dai pali di MV102 */let nw=0;if(typeof MV102!=='undefined'&&MV102.LP){const P=MV102.LP;
+   for(let i=0;i<P.count;i++){P.getMatrixAt(i,t4);v3.set(arm*.9,0,0).applyMatrix4(t4);o.position.set(v3.x,v3.y+.1,v3.z);o.rotation.set(0,0,0);o.scale.set(1,1,1);o.updateMatrix();LX.wp.setMatrixAt(nw++,o.matrix);
+    if(np<600){pos[3*np]=v3.x;pos[3*np+1]=v3.y+M.lamp.h-.45;pos[3*np+2]=v3.z;np++}}}
+  LX.wp.count=nw;LX.wp.instanceMatrix.needsUpdate=true;LX.pg.attributes.position.needsUpdate=true;LX.pg.setDrawRange(0,np)}
  return{tick,L,M,IM,get loaded(){return loaded}}})();
 
 /* ===== v126: cespugli veri (Small bush, CC-BY) e fichi d'India (Flat cactus, CC-BY) al posto dei sassi verdi (icosaedri di QR.bu) =====
@@ -10541,7 +10561,7 @@ const DET129=(()=>{const IM={},CAP={erba:900,tomb:60,pal:40};let loaded=0,ld=0,l
    A OGNI VERSIONE: alzare V e AGGIUNGERE voci in L con v = numero di versione (non cancellare le vecchie).
    x,z = dove ti mette; lx,lz = verso dove guardi; p:1 = a piedi; ver:1 = da verificare. */
 const NOV115=(()=>{
- const V=129;
+ const V=130;
  const L=[
   {v:116,n:'Cortile interno (Via Fratelli Bandiera)',d:'Isolato rifatto con case separate e cortile col pavimento vero dalla foto (prato, piastrelle, terra)',x:2148,z:2127,lx:2160,lz:2110,p:1,ver:1},
   {v:116,n:'Cortile interno (Via Mons. Cogoni)',d:'Isolato rifatto con il cortile vero',x:1277,z:2393,lx:1290,lz:2380,p:1,ver:1},
@@ -10565,7 +10585,8 @@ const NOV115=(()=>{
   {v:127,n:'Finestre vere sulle facciate (Via Fratelli Bandiera)',d:'Vicino a te le finestre dipinte diventano vere: persiane in rilievo chiuse o aperte con la finestra a vetri, davanzali, balconi sporgenti con ringhiera o parapetto. Da lontano resta il disegno',x:2130,z:2136,lx:2140,lz:2125,p:1,ver:1},
   {v:128,n:'Novità anche a Cagliari e dintorni (Via Roma)',d:'Finestre 3D con persiane e balconi, lampioni veri e marciapiedi alti 25 cm col cordolo ora ci sono anche fuori Pirri: Cagliari, Poetto, Quartu, Monserrato e tutto il resto',x:2470,z:6230,lx:2480,lz:6240,p:1,ver:1},
   {v:129,n:'Condizionatori, parabole e tende dei negozi (Via Italia)',d:'Sulle facciate vicine compaiono condizionatori accanto alle finestre, parabole sui balconi e tende da sole colorate sopra le vetrine dei negozi. In tutta la mappa',x:2644,z:1583,lx:2651,lz:1590,p:1,ver:1},
-  {v:129,n:'Tombini, paline delle fermate e lampioni più leggeri',d:'Tombini veri in mezzo alle strade, paline blu alle fermate dell’autobus senza pensilina; i lampioni veri ora pesano 12 volte meno (gioco più fluido)',x:SPX,z:SPZ,lx:SPX+10,lz:SPZ,p:0,noVai:1}];
+  {v:129,n:'Tombini, paline delle fermate e lampioni più leggeri',d:'Tombini veri in mezzo alle strade, paline blu alle fermate dell’autobus senza pensilina; i lampioni veri ora pesano 12 volte meno (gioco più fluido)',x:SPX,z:SPZ,lx:SPX+10,lz:SPZ,p:0,noVai:1},
+  {v:130,n:'Notte più vera (Via Italia, metti la notte)',d:'Di notte sotto ogni lampione c’è una pozza di luce calda e sfumata proprio sotto la lampada, e le lampade hanno un alone. Anche fuori Pirri. Prova con Menù › Gioco › Meteo e ora',x:2652,z:1540,lx:2610,lz:1590,p:1,ver:1}];
  let W=null,shown=false,ok=false;
  const st=document.createElement('style');st.textContent='#n115{position:fixed;inset:0;z-index:13;display:none;align-items:center;justify-content:center;background:rgba(5,8,16,.55);font:700 14px "Trebuchet MS",system-ui,sans-serif;color:#fff}'+
   '#n115 .w{background:#141a26;border:1px solid #2c3850;border-radius:14px;padding:14px;width:min(340px,90vw);max-height:80vh;overflow:auto;display:flex;flex-direction:column;gap:8px}'+
