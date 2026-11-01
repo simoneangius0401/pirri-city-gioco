@@ -63,6 +63,7 @@
    WG=[[[5,1.05,1.15,1.4]],[],[[1,1.05,1.1,1.4],[6.4,1.05,1.1,1.4]],[],[[3.7,1.05,1.1,1.4]],[],[]],WB=[[],[[.9,2.1]],[],[[.8,6.9]],[[3,2.5]],[[.8,2.1],[5.4,2.1]],[]];
   const win128=(x0,z0,x1,z1,g0,top,fl,nx,nz,v)=>{const L=Math.hypot(x1-x0,z1-z0),dx=(x1-x0)/L,dz=(z1-z0)/L,su=L/8.5,fh=(top-g0)/fl,sv=fh/3.2;if(fh<2.2||fl>12)return;const y0=g0;
    for(let f=0;f<fl;f++){for(const q of(f==0?WG[v]:WU[v])){const tc=(q[0]+q[2]/2)*su,x=x0+dx*tc,z=z0+dz*tc,op=hs(x*3.1+z*7.7+f)<.3?16:0;WN.push(x,y0+f*fh+q[1]*sv,z,nx,nz,q[2]*su,q[3]*sv,v+(q[4]?8:0)+op)}
+    if(f==0&&v==3){const tc=2.7*su;WN.push(x0+dx*tc,y0+2.72*sv,z0+dz*tc,nx,nz,4.3*su,.55,32)}
     if(f>0)for(const b of WB[v]){const tc=(b[0]+b[1]/2)*su;BN.push(x0+dx*tc,y0+f*fh,z0+dz*tc,nx,nz,(b[1]+.3)*su,v%2)}}};
   let bi=0;
   for(const b of d.b){bi++;const H=b[0]/10,rc=b[1],fl=b[2],sp=fl&7,n=b[3],P=[];for(let k=0;k<n;k++)P.push(ox+b[4+2*k]/10,oz+b[5+2*k]/10);
