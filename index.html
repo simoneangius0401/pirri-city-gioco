@@ -75,7 +75,7 @@ body{-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;overscro
 <button id="pg" class="pb" style="width:100%;margin:6px 0"></button><button id="pa" class="pb" style="width:100%;margin:6px 0;background:#2e7d4a;padding:12px;font-size:16px">Applica</button><button id="p0" class="pb" style="width:100%;margin-bottom:6px">Valori predefiniti (1000 · 40)</button><button id="px">Chiudi</button></div></div>
 <div id="fm"><div class="ft"><b>🗺️ Mappa</b><span id="fmi"></span></div><canvas id="fmc"></canvas><div class="fb"><button class="pb" id="fmw">📍 Rimuovi</button><button class="pb" id="fmg">🎯 Su di me</button><button class="pb" id="fmx" style="background:#2b3550">Chiudi</button></div></div>
 <div id="ib"></div><div id="fd"></div><div id="om"><div class="qc"><h3 id="omt"></h3><div id="oml"></div><button id="omx">Chiudi</button></div></div>
-<div id="menu"><div class="mc"><b>Scegli il mezzo</b><div class="vg"><button data-v="sport"><i>🏎️</i>Supercar<small>400 km/h, stabile</small></button><button data-v="tank"><i>🛡️</i>Carro armato<small>cannone, lento e corazzato</small></button><button data-v="bike"><i>🏍️</i>Moto<small>agile, si inclina</small></button><button data-v="heli"><i>🚁</i>Elicottero<small>Su/Giù per volare</small></button><button data-v="jet"><i>🚀</i>Jetpack<small>fino a 1000 km/h, Su/Giù</small></button><button data-v="jetski"><i>🌊</i>Moto d’acqua<small>sul mare, ti porta al più vicino</small></button><button data-v="riva"><i>🚤</i>Motoscafo<small>nel golfo</small></button><button data-v="vespa"><i>🛵</i>Vespa<small>la classica</small></button><button data-v="bici"><i>🚲</i>Bicicletta<small>pedalando</small></button><button data-v="panda"><i>🚗</i>Fiat Panda<small>4x4 di una volta</small></button></div><button id="mx">Chiudi</button></div></div>
+<div id="menu"><div class="mc"><b>Scegli il mezzo</b><div class="vg"><button data-v="sport"><i>🏎️</i>Supercar<small>400 km/h, stabile</small></button><button data-v="tank"><i>🛡️</i>Carro armato<small>cannone, lento e corazzato</small></button><button data-v="bike"><i>🏍️</i>Moto<small>agile, si inclina</small></button><button data-v="heli"><i>🚁</i>Elicottero<small>Su/Giù per volare</small></button><button data-v="jet"><i>🚀</i>Jetpack<small>fino a 10000 km/h, Su/Giù</small></button><button data-v="jetski"><i>🌊</i>Moto d’acqua<small>sul mare, ti porta al più vicino</small></button><button data-v="riva"><i>🚤</i>Motoscafo<small>nel golfo</small></button><button data-v="vespa"><i>🛵</i>Vespa<small>la classica</small></button><button data-v="bici"><i>🚲</i>Bicicletta<small>pedalando</small></button><button data-v="panda"><i>🚗</i>Fiat Panda<small>4x4 di una volta</small></button></div><button id="mx">Chiudi</button></div></div>
 <div id="over"><b id="ot"></b><div id="os"></div><div>Tocca per ricominciare</div></div>
 <script>/**
  * @license
@@ -6550,6 +6550,7 @@ const MONDO82=(()=>{
   const COL={0:0x45474b,1:0x45474b,2:0x3e4044,3:0x3e4044,4:0x404246,5:0x404246,6:0x46484b,7:0x48494c,9:0x55565a,10:0xb4ada0,11:0x9a5a4a,12:0x9a8868,13:0xbdb5a5,14:0xa9a397,15:0x9f9070,20:0x6d655b};
   const RW=d.r.map(r=>{const c=r[0],w=r[1]/10,fl=r[2],br=fl&1,st=br?3:2,P=[];for(let k=4;k+1<r.length;k+=st)P.push([ox+r[k]/10,oz+r[k+1]/10,br?r[k+2]/10:null]);return{c,w,br,P}});
   for(const r of RW){if(r.c>=10&&r.c!=13)continue;for(let k=0;k<r.P.length-1;k++){const a=r.P[k],b=r.P[k+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]),n=Math.max(1,Math.ceil(L/12));for(let s=0;s<=n;s++){const x=a[0]+(b[0]-a[0])*s/n,z=a[1]+(b[1]-a[1])*s/n,key=sk(x,z);let L2=SEG.get(key);if(!L2)SEG.set(key,L2=[]);L2.push([a[0],a[1],b[0],b[1],r.w/2,r])}}}
+  const trim=(P,d)=>{let L=0;for(let k=1;k<P.length;k++)L+=Math.hypot(P[k][0]-P[k-1][0],P[k][1]-P[k-1][1]);if(L<2*d+2)return null;const cut=(Q,dd)=>{const o=[];let acc=0;for(let k=1;k<Q.length;k++){const a=Q[k-1],b=Q[k],l=Math.hypot(b[0]-a[0],b[1]-a[1]);if(acc+l<dd){acc+=l;continue}const f=(dd-acc)/(l||1);o.push([a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f,a[2]!=null?a[2]+(b[2]-a[2])*f:null]);for(let q=k;q<Q.length;q++)o.push(Q[q]);return o}return Q};return cut(cut(P,d).reverse(),d).reverse()};
   const onOther=(x,z,me)=>{const L2=SEG.get(sk(x,z));if(!L2)return false;for(const s of L2){if(s[5]===me)continue;const dx=s[2]-s[0],dz=s[3]-s[1],l=dx*dx+dz*dz||1,t=Math.max(0,Math.min(1,((x-s[0])*dx+(z-s[1])*dz)/l));if(Math.hypot(x-s[0]-dx*t,z-s[1]-dz*t)<s[4]+.3)return true}return false};
   const rib=(pts,hw,off,y0,col,dash,me,skip)=>{const C=rgb(col);let prev=null;
    for(let k=0;k<pts.length-1;k++){const a=pts[k],b=pts[k+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]);if(L<.05)continue;const ux=(b[0]-a[0])/L,uz=(b[1]-a[1])/L,nx=-uz,nz=ux,ns=Math.max(1,Math.ceil(L/8));
@@ -6571,7 +6572,7 @@ const MONDO82=(()=>{
    if(c==20){rib(r.P,1.6,0,lift,COL[20]);rib(r.P,.05,.72,lift+.12,0x8f8f8f);rib(r.P,.05,-.72,lift+.12,0x8f8f8f);continue}
    rib(r.P,r.w/2,0,lift,COL[c]||0x48494c);
    if(c<=7&&r.w>=5.5){if(c<=1){rib(r.P,.08,r.w/2-.35,lift+.012,0xe8e8e2);rib(r.P,.08,-r.w/2+.35,lift+.012,0xe8e8e2)}else rib(r.P,.07,0,lift+.012,0xe8e8e2,1)}
-   if(dense&&c>=2&&c<=7&&!r.br){const sw=1.7,so=r.w/2+sw/2;const sk2=(x,z)=>onOther(x,z,r);rib(r.P,sw/2,so,lift+.25,0xc7c1b4,0,r,sk2);rib(r.P,sw/2,-so,lift+.25,0xc7c1b4,0,r,sk2);kerb(r.P,r.w/2,lift,lift+.25,0xa9a59c,sk2);kerb(r.P,-r.w/2,lift,lift+.25,0xa9a59c,sk2)}}
+   if(dense&&c>=2&&c<=7&&!r.br){const sw=1.7,so=r.w/2+sw/2;const sk2=(x,z)=>onOther(x,z,r);/* v135: marciapiede accorciato ai capi (incroci): prima a volte attraversava la strada vicina se stava nel quadrato accanto */const TP=trim(r.P,r.w/2+3);if(TP){rib(TP,sw/2,so,lift+.25,0xc7c1b4,0,r,sk2);rib(TP,sw/2,-so,lift+.25,0xc7c1b4,0,r,sk2);kerb(TP,r.w/2,lift,lift+.25,0xa9a59c,sk2);kerb(TP,-r.w/2,lift,lift+.25,0xa9a59c,sk2)}}}
   out.road=R.f();
   // --- edifici ---
   const W=new B(),RF=new B(),boxes=[];const Wd=2048,Hh=1024,RH=204;
@@ -6608,7 +6609,7 @@ const MONDO82=(()=>{
    for(let zc=zmin+1.5;zc<zmax+1.4;zc+=3){const zz=Math.min(zc,zmax-.01),xs=[];for(let i=0;i<n;i++){const j=(i+1)%n,az=P[2*i+1],bz=P[2*j+1];if((az<=zz)!=(bz<=zz)){xs.push(P[2*i]+(zz-az)/(bz-az)*(P[2*j]-P[2*i]))}}xs.sort((a,b)=>a-b);for(let k=0;k+1<xs.length;k+=2)if(xs[k+1]-xs[k]>.3)boxes.push(xs[k],zz-1.5,xs[k+1],zz+1.5,top)}}
   out.walls=W.f();out.roofs=RF.f();out.boxes=new Float32Array(boxes);out.win=new Float32Array(WN);out.bal=new Float32Array(BN);
   // --- alberi ---
-  const tr=[],tstep=lod?2:6;for(let k=0;k+1<d.t.length;k+=tstep){const x=ox+d.t[k]/10,z=oz+d.t[k+1]/10;tr.push(x,ht(x,z),z,.8+hs(x*3.1+z)*.7)}out.trees=new Float32Array(tr);
+  const tr=[],tstep=2;/* v135: stessi alberi anche nei quadrati lontani (prima 1 su 3: avvicinandosi 'spuntavano' gli altri) */for(let k=0;k+1<d.t.length;k+=tstep){const x=ox+d.t[k]/10,z=oz+d.t[k+1]/10;tr.push(x,ht(x,z),z,.8+hs(x*3.1+z)*.7)}out.trees=new Float32Array(tr);
   return out}
  self.onmessage=async e=>{const m=e.data;
   if(m.t=='init'){Q=m.Q;QH=m.QH;postMessage({t:'ok'});return}
@@ -6672,7 +6673,7 @@ const MONDO82=(()=>{
    if(!fast&&t.state==2&&t.lod!=lod&&t.data&&(lod==1||d>RNEAR+250)){t.state=1;nBusy++;wk.postMessage({t:'lod',d:t.data,lod})}}}
  return{get idx(){return IDX},get mode(){return MODE},ST,h,inB,init,tick,get n(){return TL.size},get busy(){return nBusy},get ok(){return !!IDX},TL}})();
 
-const H00=(x,z)=>{const d=Math.max(-x,x-WX,-z,z-WZ);const e0=EL(x,z);if(d<=0)return e0;if(MONDO82.inB(x,z)){const t=MONDO82.h(x,z);return d<60?e0+(t-e0)*d/60:t}if(d<50)return e0;const f=cl((d-50)/550,0,1),s=f*f*(3-2*f);return Math.max(-.25,e0+(LAND74.real(x,z)-e0)*s)};
+const H00=(x,z)=>{const d=Math.max(-x,x-WX,-z,z-WZ);const e0=EL(x,z);if(d<=0)return e0;if(MONDO82.inB(x,z)){const t=MONDO82.h(x,z);return (d<60?e0+(t-e0)*d/60:t)+(d>40&&window.SW135?SW135(x,z):0)}if(d<50)return e0;const f=cl((d-50)/550,0,1),s=f*f*(3-2*f);return Math.max(-.25,e0+(LAND74.real(x,z)-e0)*s)};
 
 let HYv=0;const FT=[];
 /* ===== v33: Asse Mediano sopraelevato =====
@@ -7218,7 +7219,7 @@ function mkJet(){const c=new THREE.Group();c.rotation.order='YZX';
 
 let pz=0;const VN={sport:'Supercar',tank:'Carro armato',bike:'Moto',heli:'Elicottero',jet:'Jetpack',jetski:'Moto d’acqua',riva:'Motoscafo',vespa:'Vespa',bici:'Bicicletta',panda:'Fiat Panda'};
 let mOpen=0,mT=0;function menu(force){if(inside)return;const now=performance.now();if(force===undefined&&now-mT<450)return;mT=now;const o=force===undefined?!mOpen:!!force;if(o&&!mOpen&&pz)return;mOpen=o;pz=o?1:0;$('menu').style.display=o?'flex':'none'}
-function setVeh(k){if(k=='feno')k='tank';scene.remove(me.m);me.tur=0;me.m=(k=='bike'||k=='vespa'||k=='bici')?mkBike():k=='jet'?mkJet():k=='heli'?mkChopper():k=='tank'?mkTank():mkSport();me.kind=k;me.y=0;me.vy=0;me.ln=0;me.air=me.pv=me.sl=me.at=0;const S={sport:[112,60,.004,70],tank:[46,30,.006,34],bike:[105,72,.004,48],heli:[85,34,.12,400],jet:[285,150,.01,420],jetski:[95,40,.012,55],riva:[80,26,.014,45],vespa:[78,30,.008,44],bici:[34,12,.02,38],panda:[96,30,.006,52]}[k];me.top=S[0];me.ac=S[1];me.dr=S[2];me.sg=S[3];me.lf=1;k!='jet'&&addBeam(me.m,k=='bike'?.95:FLY79[k]?1.1:.85,k=='sport'?.7:k=='bike'||FLY79[k]?0:1)}
+function setVeh(k){if(k=='feno')k='tank';scene.remove(me.m);me.tur=0;me.m=(k=='bike'||k=='vespa'||k=='bici')?mkBike():k=='jet'?mkJet():k=='heli'?mkChopper():k=='tank'?mkTank():mkSport();me.kind=k;me.y=0;me.vy=0;me.ln=0;me.air=me.pv=me.sl=me.at=0;const S={sport:[112,60,.004,70],tank:[46,30,.006,34],bike:[105,72,.004,48],heli:[85,34,.12,400],jet:[2778,1300,.01,420],jetski:[95,40,.012,55],riva:[80,26,.014,45],vespa:[78,30,.008,44],bici:[34,12,.02,38],panda:[96,30,.006,52]}[k];me.top=S[0];me.ac=S[1];me.dr=S[2];me.sg=S[3];me.lf=1;k!='jet'&&addBeam(me.m,k=='bike'?.95:FLY79[k]?1.1:.85,k=='sport'?.7:k=='bike'||FLY79[k]?0:1)}
 document.querySelectorAll('[data-v]').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.v;setVeh(k);if(foot){me.x=man.x+Math.cos(man.yaw)*4;me.z=man.z-Math.sin(man.yaw)*4;me.yaw=man.yaw;foot=0;tg=me;man.m.visible=false}try{ACQ103.spawn()}catch(e){}menu(0);msg(VN[k])}));$('mx').addEventListener('click',()=>menu(0));setVeh('sport');
 const DR=[[1,0],[0,1],[-1,0],[0,-1]],YW=[0,-Math.PI/2,Math.PI,Math.PI/2],TC=[0xc0392b,0x2e86c1,0x27ae60,0x8e44ad,0xecf0f1,0x34495e,0xe67e22,0xf2c200];
 const traf=[];for(let k=0;k<40;k++){const t=mkS(0,0,0,TC[k%8],0,(k/4|0)%5);t.d=0;placeNear(t,me.x,me.z);traf.push(t)}
@@ -8189,13 +8190,13 @@ function CABIN105(w){w.updateMatrixWorld(true);const bb=new THREE.Box3().setFrom
 /* v107: copia leggera di un modello (un solo pezzo con i colori nei vertici): i vertici vicini (cella = lato/cel) si fondono,
    il colore di ogni vertice e' quello della sua immagine (o del materiale) in quel punto. Serve per le cose lontane. */
 const LOD107=(()=>{const CV=new Map();
- function pix(tex){if(!tex||!tex.image)return null;if(CV.has(tex.uuid))return CV.get(tex.uuid);let r=null;try{const im=tex.image,c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');x.drawImage(im,0,0,64,64);r=x.getImageData(0,0,64,64).data}catch(e){r=null}CV.set(tex.uuid,r);return r}
+ function pix(tex){if(!tex||!tex.image)return null;if(CV.has(tex.uuid))return CV.get(tex.uuid);let r=null;try{const im=tex.image,c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');x.drawImage(im,0,0,128,128);r=x.getImageData(0,0,128,128).data}catch(e){r=null}CV.set(tex.uuid,r);return r}
  function make(root,cel){root.updateMatrixWorld(true);const Mi=new THREE.Matrix4().copy(root.matrixWorld).invert(),V=new THREE.Vector3(),C=new THREE.Color();
   const P=[],K=[];root.traverse(m=>{if(!m.isMesh||!m.visible||m.isSkinnedMesh)return;const g=m.geometry,pa=g.attributes.position,uv=g.attributes.uv,I=g.index,mats=Array.isArray(m.material)?m.material:[m.material];
    const M=new THREE.Matrix4().multiplyMatrices(Mi,m.matrixWorld),n=I?I.count:pa.count;const grp=(g.groups&&g.groups.length)?g.groups:[{start:0,count:n,materialIndex:0}];
    for(const gr of grp){const q=mats[gr.materialIndex||0]||mats[0];if(!q)continue;const px=pix(q.map),glass=q.transparent&&q.opacity<.8;
     for(let t=gr.start;t<Math.min(n,gr.start+gr.count);t++){const vi=I?I.getX(t):t;V.fromBufferAttribute(pa,vi).applyMatrix4(M);P.push(V.x,V.y,V.z);
-     if(glass)C.setRGB(.06,.08,.1);else{C.copy(q.color||C.setRGB(.7,.7,.7));if(px&&uv){let u=uv.getX(vi),v=uv.getY(vi);u=u-Math.floor(u);v=v-Math.floor(v);if(q.map.flipY!==false)v=1-v;const k=((Math.min(63,v*64|0))*64+Math.min(63,u*64|0))*4;C.r*=Math.pow(px[k]/255,2.2);C.g*=Math.pow(px[k+1]/255,2.2);C.b*=Math.pow(px[k+2]/255,2.2)}}
+     if(glass)C.setRGB(.06,.08,.1);else{C.copy(q.color||C.setRGB(.7,.7,.7));if(px&&uv){let u=uv.getX(vi),v=uv.getY(vi);u=u-Math.floor(u);v=v-Math.floor(v);if(q.map.flipY!==false)v=1-v;const k=((Math.min(127,v*128|0))*128+Math.min(127,u*128|0))*4;C.r*=Math.pow(px[k]/255,2.2);C.g*=Math.pow(px[k+1]/255,2.2);C.b*=Math.pow(px[k+2]/255,2.2)}}
      K.push(C.r,C.g,C.b)}}});
   /* fusione dei vertici vicini */const N=P.length/3;let x0=1e9,y0=1e9,z0=1e9,x1=-1e9,y1=-1e9,z1=-1e9;for(let i=0;i<N;i++){x0=Math.min(x0,P[3*i]);x1=Math.max(x1,P[3*i]);y0=Math.min(y0,P[3*i+1]);y1=Math.max(y1,P[3*i+1]);z0=Math.min(z0,P[3*i+2]);z1=Math.max(z1,P[3*i+2])}
   const s=Math.max(x1-x0,y1-y0,z1-z0)/cel,MP=new Map(),cp=[],cc=[],cn=[],rep=new Int32Array(N);
@@ -8216,7 +8217,7 @@ const CAR83=(()=>{/* v126 (Simone 01/11): nel traffico solo auto dal 2000 in poi
     const bb=new THREE.Box3().setFromObject(o),sz=bb.getSize(new THREE.Vector3()),s=d.L/Math.max(.01,sz.x);o.scale.setScalar(s);o.updateMatrixWorld(true);
     const b2=new THREE.Box3().setFromObject(o),c=b2.getCenter(new THREE.Vector3());o.position.set(-c.x,-b2.min.y,-c.z);
     o.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true;fixMat(m.material)}});const w=new THREE.Group();w.add(o);if(d.f==='panda')CABIN105(w);T.push(w);
-    try{const lo=LOD107.make(w,46);LD.push(lo);console.log('MODS auto leggera',d.f,lo.userData.tri.map(v=>Math.round(v)).join('->'))}catch(e){LD.push(null);console.warn('auto leggera',d.f,e)}}catch(e){console.warn('auto vera mancante',d.f)}}
+    try{const lo=LOD107.make(w,72);LD.push(lo);console.log('MODS auto leggera',d.f,lo.userData.tri.map(v=>Math.round(v)).join('->'))}catch(e){LD.push(null);console.warn('auto leggera',d.f,e)}}catch(e){console.warn('auto vera mancante',d.f)}}
   if(!T.length)return;ok=true;console.log('MODS auto vere pronte',T.length)}
  /* v107: il modello di ogni auto e' fisso (scelto una volta dal suo numero), sia vicino sia lontano */
  function dress(t,i){if(!t.m||t.m.userData.c83)return;const k=(t.id83===undefined?(t.id83=i):t.id83)%T.length,v=T[k].clone(true);v.visible=false;t.m.add(v);t.m.userData.c83=v;
@@ -8226,7 +8227,9 @@ const CAR83=(()=>{/* v126 (Simone 01/11): nel traffico solo auto dal 2000 in poi
     v107: 16 vicine col modello completo, le altre con la copia leggera; la sagoma vecchia non si vede piu' */
  function tick(now){if(!ok||now-tk<.2)return;tk=now;const px=cam.position.x,pz=cam.position.z;const L=[];let i=0;
   for(const t of traf){if(!t.m)continue;if(!t.m.userData.c83)dress(t,i);i++;if(!t.dead){const d=(t.x-px)*(t.x-px)+(t.z-pz)*(t.z-pz);if(d<R2)L.push([d,t])}}
-  L.sort((a,b)=>a[0]-b[0]);const S=new Set(L.slice(0,16).map(q=>q[1]));
+  L.sort((a,b)=>a[0]-b[0]);/* v135 (Simone: le auto "cambiano modello dal nulla" avvicinandosi): modello completo per tutte le auto entro 110 m (max 32, 16 in grafica bassa),
+   chi e' gia' completo lo resta fino a 135 m: il cambio avviene lontano e non avanti e indietro */
+  let NF=32;try{if(QL&&QL.pd<=500)NF=16}catch(e){}const S=new Set();for(const [d,t] of L){if(S.size>=NF)break;const u=t.m.userData;if(d<110*110||(u.n83===1&&d<135*135))S.add(t)}
   /* oltre le 110 auto piu' vicine non si disegnano (si muovono lo stesso) */{const V=new Set();for(const t of traf){if(t.dead)continue;const d=(t.x-px)*(t.x-px)+(t.z-pz)*(t.z-pz);if(d<350*350)V.add([d,t])}const A=[...V].sort((a,b)=>a[0]-b[0]);for(const t of traf)t.f95=true;for(let k=0;k<Math.min(110,A.length);k++)A[k][1].f95=false}
   for(const t of traf){if(!t.m||!t.m.userData.c83)continue;const u=t.m.userData,near=S.has(t),st=near?1:u.l107?2:0;if(u.n83===st)continue;u.n83=st;u.c83.visible=st===1;if(u.l107)u.l107.visible=st===2;for(const c of u.o83)c.visible=st===0}}
  return{init,tick,T,M,LD,get ok(){return ok}}})();
@@ -8701,13 +8704,13 @@ const PIG88=(()=>{let N=12;const B=[];let ok=false,clip=null,tNext=0;
    Le auto in sosta (parcheggi e strade di servizio da OpenStreetMap, sosta di Via Toti) sono sagome semplici disegnate a blocchi.
    Entro ~80 m le piu' vicine diventano modelli veri (gli stessi del traffico): la sagoma di quel posto viene nascosta
    e al suo posto compare l'auto vera; quando ti allontani torna la sagoma. Il modello per ogni posto e' sempre lo stesso. */
-const PARK88=(()=>{const R=80,R2=R*R,CS=50,GI=new Map(),SL=[],Z=new THREE.Matrix4().makeScale(0,0,0);let ok=false,N=16,tk=0,idx=false;
+const PARK88=(()=>{/* v135: auto vere in sosta entro 130 m (prima 80: comparivano all'improvviso) */const R=130,R2=R*R,CS=50,GI=new Map(),SL=[],Z=new THREE.Matrix4().makeScale(0,0,0);let ok=false,N=16,tk=0,idx=false;
  const hs=(a,b)=>{const v=Math.sin(a*12.9898+b*78.233)*43758.5453;return v-Math.floor(v)};
  /* v90: i blocchi di auto in sosta lontani (oltre ~330 m) non si disegnano: erano piu' di un milione di triangoli sempre accesi */
  const BL=new Map();function cull(){const cx=cam.position.x,cz=cam.position.z;for(const b of BL.values()){const on=Math.hypot(b.x-cx,b.z-cz)<330+b.r;if(b.a.visible!==on){b.a.visible=on;b.b.visible=on}}}
  function build(){const L=window.PK88||[];for(const r of L){let b=BL.get(r.a);if(!b)BL.set(r.a,b={a:r.a,b:r.b,sx:0,sz:0,n:0,P:[]});b.sx+=r.x;b.sz+=r.z;b.n++;b.P.push(r)}for(const b of BL.values()){b.x=b.sx/b.n;b.z=b.sz/b.n;b.r=0;for(const r of b.P)b.r=Math.max(b.r,Math.hypot(r.x-b.x,r.z-b.z));b.P=null}
   for(const r of L){const k=Math.floor(r.x/CS)+','+Math.floor(r.z/CS);let a=GI.get(k);if(!a)GI.set(k,a=[]);a.push(r);r.mi=Math.floor(hs(r.x,r.z)*997)}idx=true}
- function init(){try{N=QL&&QL.pd<=500?9:16}catch(e){}for(let i=0;i<N;i++){const w=new THREE.Group();w.visible=false;scene.add(w);SL.push({w,r:null,c:{},mi:-1})}ok=true}
+ function init(){try{N=QL&&QL.pd<=500?14:28}catch(e){}for(let i=0;i<N;i++){const w=new THREE.Group();w.visible=false;scene.add(w);SL.push({w,r:null,c:{},mi:-1})}ok=true}
  function show(s,r){const T=CAR83.T,mi=r.mi%T.length;if(s.mi!==mi){if(s.cur)s.cur.visible=false;let o=s.c[mi];if(!o){o=T[mi].clone(true);s.c[mi]=o;s.w.add(o)}o.visible=true;s.cur=o;s.mi=mi}
   s.w.position.set(r.x,H00(r.x,r.z),r.z);s.w.rotation.set(0,-r.ang+(hs(r.z,r.x)<.5?Math.PI/2:-Math.PI/2),0);s.w.visible=true;
   r.a.setMatrixAt(r.i,Z);r.b.setMatrixAt(r.i,Z);r.a.instanceMatrix.needsUpdate=r.b.instanceMatrix.needsUpdate=true;s.r=r;r.s=s}
@@ -9487,6 +9490,16 @@ const MV102=(()=>{const V=new THREE.Vector3();let RD=[],EP=new Map(),tR=-9,ok=fa
     let dm=1e9;for(const q of P)dm=Math.min(dm,Math.hypot(q[0]-px,q[1]-pz));const R={dm,c,n:r[3],w:r[1]/10,P,L,len:L[L.length-1],car:c<=9,foot:c>=2&&c!=0&&c!=1&&c!=9||c==10||c==13||c==15,i:RD.length,/* v128: marciapiede rialzato (come nel lavoratore: quadrati con piu' di 25 edifici, strade 2-7) */sw:c>=2&&c<=7&&!br&&t.data.b&&t.data.b.length>25};RD.push(R);
     for(const [e,pt] of[[0,P[0]],[1,P[P.length-1]]]){const kk=Math.round(pt[0]/2)+','+Math.round(pt[1]/2);let a=EP.get(kk);if(!a)EP.set(kk,a=[]);a.push([R,e])}}}}
  /* punto e direzione a distanza s lungo la strada R */
+ /* v135 (regola fissa: marciapiedi salibili anche nel mondo grande): griglia da 10 m dei tratti di strada;
+    sw(x,z) = +0,31 m sulla fascia del marciapiede (tra il bordo strada e 1,7 m fuori) se non sei dentro un'altra carreggiata */
+ let SWG=new Map(),swR=null;
+ function swBuild(){SWG=new Map();swR=RD;for(const R of RD){if(!R.car||R.c>9)continue;const P=R.P,ext=R.w/2+(R.sw?1.8:0);
+   for(let q=1;q<P.length;q++){const a=P[q-1],b=P[q];if(a[2]!=null)continue;const i0=Math.floor((Math.min(a[0],b[0])-ext)/10),i1=Math.floor((Math.max(a[0],b[0])+ext)/10),j0=Math.floor((Math.min(a[1],b[1])-ext)/10),j1=Math.floor((Math.max(a[1],b[1])+ext)/10);
+    if((i1-i0+1)*(j1-j0+1)>400)continue;for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const k=i*100003+j;let L=SWG.get(k);if(!L)SWG.set(k,L=[]);L.push(R,q)}}}}
+ function sw(x,z){if(swR!==RD)swBuild();const L=SWG.get(Math.floor(x/10)*100003+Math.floor(z/10));if(!L)return 0;let on=0;
+  for(let n=0;n<L.length;n+=2){const R=L[n],q=L[n+1],a=R.P[q-1],b=R.P[q],dx=b[0]-a[0],dz=b[1]-a[1],l2=dx*dx+dz*dz||1,t=Math.max(0,Math.min(1,((x-a[0])*dx+(z-a[1])*dz)/l2)),d=Math.hypot(a[0]+dx*t-x,a[1]+dz*t-z);
+   if(d<R.w/2)return 0;if(R.sw&&d<R.w/2+1.7)on=1}return on?.31:0}
+ window.SW135=sw;
  function at(R,s,o){const L=R.L,P=R.P;let i=1;while(i<L.length-1&&L[i]<s)i++;const a=P[i-1],b=P[i],f=Math.max(0,Math.min(1,(s-L[i-1])/Math.max(.01,L[i]-L[i-1])));
   o.x=a[0]+(b[0]-a[0])*f;o.z=a[1]+(b[1]-a[1])*f;const l=Math.max(.01,L[i]-L[i-1]);o.ux=(b[0]-a[0])/l;o.uz=(b[1]-a[1])/l;o.y=a[2]!=null&&b[2]!=null?a[2]+(b[2]-a[2])*f:null;return o}
  const tmp={};
@@ -9515,14 +9528,16 @@ const MV102=(()=>{const V=new THREE.Vector3();let RD=[],EP=new Map(),tR=-9,ok=fa
  function stepPed(p,dt,ani){const R=p.R;p.s+=p.v*dt*p.dir;if(p.s<0||p.s>R.len){const end=p.s>R.len,n=next(R,end,Q=>Q.foot);if(!n){p.dir=-p.dir;p.s=Math.max(0,Math.min(R.len,p.s))}else{const [Q,e]=n;p.R=Q;p.dir=e==0?1:-1;p.s=e==0?0:Q.len}}
   at(p.R,p.s,tmp);const ux=tmp.ux*p.dir,uz=tmp.uz*p.dir,off=p.R.c>=10?.4*p.side:(p.R.w/2+1.1)*p.side,x=tmp.x-uz*off,z=tmp.z+ux*off;
   const ty=Math.atan2(ux,uz);let da=ty-p.yw;da=Math.atan2(Math.sin(da),Math.cos(da));p.yw+=Math.abs(da)>2?da:da*Math.min(1,dt*5);
-  p.w.position.set(x,(tmp.y!=null?tmp.y:gy(x,z))+(p.R.sw?.31:0),z);p.w.rotation.set(0,p.yw,0);if(ani)p.mx.update(ani*p.v/1.35)}
+  p.w.position.set(x,tmp.y!=null?tmp.y+(p.R.sw?.31:0):gy(x,z),z);p.w.rotation.set(0,p.yw,0);if(ani)p.mx.update(ani*p.v/1.35)}
 
  /* ---------- lampioni e auto parcheggiate ---------- */
  const NL=260,NK=24;let LP=null,LH=null,PK=[],lastS=-99,lx=1e9,lz=1e9;const D=new THREE.Object3D();
  function mkLamps(){if(LP)return;const pg=new THREE.CylinderGeometry(.07,.1,7.5,6).translate(0,3.75,0),hg=new THREE.BoxGeometry(.9,.18,.32).translate(.38,7.45,0);
   LP=new THREE.InstancedMesh(pg,new THREE.MeshStandardMaterial({color:0x53575c,metalness:.5,roughness:.6}),NL);LH=new THREE.InstancedMesh(hg,new THREE.MeshStandardMaterial({color:0x2b2d30,emissive:0xffd9a0,emissiveIntensity:0}),NL);
   for(const m of[LP,LH]){m.count=0;m.frustumCulled=false;m.userData.m82=1;scene.add(m)}}
- function mkPark(){if(PK.length||typeof CAR83==='undefined'||!CAR83.ok||!CAR83.T.length)return;for(let i=0;i<NK;i++){const m=CAR83.T[(i*3+1)%CAR83.T.length].clone(true);m.visible=false;m.traverse(o=>{if(o.isMesh)o.castShadow=false});scene.add(m);PK.push(m)}}
+ /* v135: ogni posto ha SEMPRE lo stesso modello (dalla posizione): prima i modelli giravano tra i posti e "cambiavano dal nulla" */
+ const POOL=new Map(),GONE=new Set();function mkPark(){if(typeof CAR83==='undefined'||!CAR83.ok||!CAR83.T.length)return false;return true}
+ function getPK(mi,n){let a=POOL.get(mi);if(!a)POOL.set(mi,a=[]);while(a.length<=n){const m=CAR83.T[mi].clone(true);m.visible=false;m.traverse(o=>{if(o.isMesh)o.castShadow=false});scene.add(m);a.push(m);PK.push(m)}return a[n]}
  /* punti fissi (sempre gli stessi per la stessa strada: dipendono dalla posizione, non dal caso) */
  const hsh=(x,z)=>{const v=Math.sin(x*12.9898+z*78.233)*43758.5453;return v-Math.floor(v)};
  function statics(px,pz){let nl=0;const KP=[];
@@ -9532,15 +9547,18 @@ const MV102=(()=>{const V=new THREE.Vector3();let RD=[],EP=new Map(),tR=-9,ok=fa
    if(R.c>=4&&R.c<=7&&R.len>12)for(let s=4;s<R.len-4;s+=6.5){at(R,s,tmp);const d=Math.hypot(tmp.x-px,tmp.z-pz);if(d>130)continue;const h=hsh(Math.round(tmp.x*3),Math.round(tmp.z*3));if(h>.42)continue;
     const sd=h<.21?1:-1,off=R.w/2-1.0;KP.push([d,tmp.x-tmp.uz*off*sd,tmp.z+tmp.ux*off*sd,Math.atan2(-tmp.uz,tmp.ux)+(h<.1?Math.PI:0)])}}
   LP.count=LH.count=nl;LP.instanceMatrix.needsUpdate=LH.instanceMatrix.needsUpdate=true;
-  KP.sort((a,b)=>a[0]-b[0]);for(let i=0;i<PK.length;i++){const k=KP[i],m=PK[i];if(!k){m.visible=false;continue}m.position.set(k[1],gy(k[1],k[2]),k[2]);m.rotation.set(0,k[3],0);m.visible=true;
-   /* le auto parcheggiate si urtano come gli ostacoli del gioco */m.userData.pk={x:k[1],z:k[2],yaw:k[3],vx:0,vz:0,s:0,y:gy(k[1],k[2])}}}
+  KP.sort((a,b)=>a[0]-b[0]);if(!mkPark())return;const used=new Set(),cnt=new Map();
+  for(const k of KP){if(used.size>=NK)break;const key=Math.round(k[1])+','+Math.round(k[2]);if(GONE.has(key))continue;const mi=Math.floor(hsh(Math.round(k[1]*7),Math.round(k[2]*7))*997)%CAR83.T.length,n=cnt.get(mi)||0;cnt.set(mi,n+1);
+   const m=getPK(mi,n);used.add(m);m.position.set(k[1],gy(k[1],k[2]),k[2]);m.rotation.set(0,k[3],0);m.visible=true;
+   /* le auto parcheggiate si urtano come gli ostacoli del gioco */m.userData.pk={x:k[1],z:k[2],yaw:k[3],vx:0,vz:0,s:0,y:gy(k[1],k[2]),key}}
+  for(const m of PK)if(!used.has(m))m.visible=false}
 
  /* nome della via vicina (per la scritta in alto anche fuori da Pirri) */
  function name(x,z){let bd=16,bn='';const nm=MONDO82.idx&&MONDO82.idx.nm;if(!nm)return '';for(const R of RD){if(R.n<0||R.c>13)continue;const P=R.P;for(let i=1;i<P.length;i++){const ax=P[i-1][0],az=P[i-1][1],dx=P[i][0]-ax,dz=P[i][1]-az,l2=dx*dx+dz*dz||1;let t=((x-ax)*dx+(z-az)*dz)/l2;t=t<0?0:t>1?1:t;const d=Math.hypot(ax+dx*t-x,az+dz*t-z);if(d<bd){bd=d;bn=nm[R.n]||''}}}return bn}
  let fr=0;
  function tick(now,dt){if(typeof MONDO82==='undefined'||!MONDO82.TL)return;const px=cam.position.x,pz=cam.position.z,out=!inCore(px,pz,-150);
   if(!out){if(ok){for(const c of CARS)c.m.visible=false;for(const p of PEO)p.w.visible=false;for(const m of PK)m.visible=false;if(LP)LP.count=LH.count=0;ok=false}return}
-  ok=true;mkCars();mkPeds();mkLamps();mkPark();fr++;
+  ok=true;mkCars();mkPeds();mkLamps();fr++;
   if(now-tR>1.5||Math.hypot(px-lx,pz-lz)>120){tR=now;roads(px,pz);if(Math.hypot(px-lx,pz-lz)>40||now-lastS>6){lastS=now;lx=px;lz=pz;statics(px,pz)}}
   if(!RD.length)return;
   {let nite=0;try{nite=typeof tod!=='undefined'?(tod<6.3||tod>19.6?1:0):0}catch(e){}if(LH)LH.material.emissiveIntensity=nite?2.2:0}
@@ -9548,7 +9566,7 @@ const MV102=(()=>{const V=new THREE.Vector3();let RD=[],EP=new Map(),tR=-9,ok=fa
    if(!foot&&c.m.visible&&Math.hypot(c.x-me.x,c.z-me.z)<6){try{bump(me,c)}catch(e){}}}
   if(!foot)for(const m of PK){if(m.visible&&m.userData.pk&&Math.hypot(m.position.x-me.x,m.position.z-me.z)<6){try{bump(me,m.userData.pk)}catch(e){}}}
   for(const p of PEO){if(!p.R||Math.hypot(p.w.position.x-px,p.w.position.z-pz)>140)placePed(p,px,pz);if(!p.R)continue;const d=Math.hypot(p.w.position.x-px,p.w.position.z-pz);p.w.visible=d<120;stepPed(p,dt,p.w.visible?(d<40||fr%2==0?(d<40?dt:dt*2):0):0)}}
- return{tick,name,CARS,PEO,PK,get LP(){return LP},get RD(){return RD},get LH(){return LH},get n(){return[CARS.filter(c=>c.m.visible).length,PEO.filter(p=>p.w.visible).length,LP?LP.count:0,PK.filter(m=>m.visible).length,RD.length]}}})();
+ return{tick,name,sw,CARS,PEO,PK,GONE,get LP(){return LP},get RD(){return RD},get LH(){return LH},get n(){return[CARS.filter(c=>c.m.visible).length,PEO.filter(p=>p.w.visible).length,LP?LP.count:0,PK.filter(m=>m.visible).length,RD.length]}}})();
 /* ===== v102: persone dentro i locali (Bar Luna, Ristorante Da Mario, Caffe' Centrale) =====
    Prima dentro c'eravate solo voi due. Ora: il barista/cameriere dietro il bancone e clienti seduti ai tavoli
    (persone vere, sedute sulle sedie del locale), al bar anche due persone sugli sgabelli. */
@@ -10285,7 +10303,7 @@ const URT121=(()=>{let px=null,pz=null,pf=null,n=0;
    - Specie: per ogni albero la specie si sceglie dalla posizione (sempre la stessa); OpenStreetMap non dice la specie degli alberi qui (dato non verificabile).
    Le chiome si riconoscono da sole: InstancedMesh con forma a sfera di facce, il cui primo albero sta ad almeno 2 m da terra (i cespugli restano). */
 const ALB121=(()=>{
- const T=[{f:'pino',w:.25},{f:'palma',w:.10},{f:'palma2',w:.10},{f:'latifoglia',w:.55}],NT=T.length,NEAR=16,RN=35;
+ const T=[{f:'pino',w:.25},{f:'palma',w:.10},{f:'palma2',w:.10},{f:'latifoglia',w:.55}],NT=T.length;let NEAR=28,RN=60;try{if(QL&&QL.pd<=500){NEAR=16;RN=40}}catch(e){}/* v135: alberi veri fino a 60 m (prima 35: il cambio si notava) */
  let nsm=0,tR=[],ready=false,loaded=0,atlas=null,impMat=null,impDepth=null,impGeo=null,t0=0,tScan=0,tNear=0;
  const REG=[],SEEN=new WeakSet(),HID=new Map();/* HID: entry -> matrice originale */
  const hs=(x,z)=>{const h=Math.sin(x*12.9898+z*78.233)*43758.5453;return h-Math.floor(h)};
@@ -10617,7 +10635,7 @@ const V131=(()=>{const D=V131D,IM={},CAP={fl:30,fo:16,di:8};let loaded=0,ld=0,lx
    A OGNI VERSIONE: alzare V e AGGIUNGERE voci in L con v = numero di versione (non cancellare le vecchie).
    x,z = dove ti mette; lx,lz = verso dove guardi; p:1 = a piedi; ver:1 = da verificare. */
 const NOV115=(()=>{
- const V=134;
+ const V=135;
  const L=[
   {v:116,n:'Cortile interno (Via Fratelli Bandiera)',d:'Isolato rifatto con case separate e cortile col pavimento vero dalla foto (prato, piastrelle, terra)',x:2148,z:2127,lx:2160,lz:2110,p:1,ver:1},
   {v:116,n:'Cortile interno (Via Mons. Cogoni)',d:'Isolato rifatto con il cortile vero',x:1277,z:2393,lx:1290,lz:2380,p:1,ver:1},
@@ -10649,7 +10667,12 @@ const NOV115=(()=>{
   {v:134,n:'Mappa più grande: Decimomannu',d:'La mappa ora arriva a ovest fino a Decimomannu e Uta (edifici, strade, quote e foto dall’alto veri)',x:-11121,z:-5661,lx:-11142,lz:-5629,p:1,ver:1},
   {v:134,n:'Mappa più grande: Dolianova',d:'A nord-est fino a Dolianova e Serdiana, sulle colline vere',x:6679,z:-12889,lx:6703,lz:-12872,p:1,ver:1},
   {v:134,n:'Mappa più grande: Monastir',d:'A nord Monastir e Ussana',x:-4695,z:-13605,lx:-4720,lz:-13591,p:1,ver:1},
-  {v:134,n:'Mappa più grande: Serramanna',d:'L’angolo più lontano a nord-ovest: Serramanna e Villasor',x:-15376,z:-18000,lx:-15367,lz:-18013,p:1,ver:1}];
+  {v:134,n:'Mappa più grande: Serramanna',d:'L’angolo più lontano a nord-ovest: Serramanna e Villasor',x:-15376,z:-18000,lx:-15367,lz:-18013,p:1,ver:1},
+  {v:135,n:'Jetpack a 10000 km/h',d:'Menù > Mezzo > Jetpack: ora arriva a 10000 km/h',noVai:1,ver:1},
+  {v:135,n:'Auto senza cambi improvvisi',d:'Le auto del traffico e quelle parcheggiate diventano il modello completo già da 110-130 m (prima a pochi metri, e “cambiavano dal nulla”); nel mondo grande ogni auto in sosta resta sempre la stessa',noVai:1,ver:1},
+  {v:135,n:'Alberi che non spuntano più',d:'Fuori Pirri si vedono tutti gli alberi anche da lontano (prima ne comparivano altri avvicinandosi); alberi 3D veri fino a 60 m',noVai:1,ver:1},
+  {v:135,n:'Sali su tutte le auto',d:'Ora puoi salire anche sulle auto parcheggiate del mondo grande (Sali vicino all’auto)',x:6679,z:-12889,lx:6703,lz:-12872,p:1,ver:1},
+  {v:135,n:'Marciapiedi veri anche fuori Pirri',d:'Nel mondo grande ci si sale sopra davvero (25 cm) e non attraversano più le strade agli incroci',noVai:1,ver:1}];
  let W=null,shown=false,ok=false;
  const st=document.createElement('style');st.textContent='#n115{position:fixed;inset:0;z-index:13;display:none;align-items:center;justify-content:center;background:rgba(5,8,16,.55);font:700 14px "Trebuchet MS",system-ui,sans-serif;color:#fff}'+
   '#n115 .w{background:#141a26;border:1px solid #2c3850;border-radius:14px;padding:14px;width:min(340px,90vw);max-height:80vh;overflow:auto;display:flex;flex-direction:column;gap:8px}'+
@@ -10690,6 +10713,7 @@ const STEAL110=(()=>{
   /* auto del mondo grande */try{for(const c of MV102.CARS){if(!c.m||!c.m.visible)continue;cand(Math.hypot(c.x-x,c.z-z),()=>{const m=carWith(loc(c.m));c.m.visible=false;c.R=null;enter(m,c.x,c.z,c.yaw,{wp:1,txt:'Auto rubata!'})})}}catch(e){}
   /* v113: ambulanze e pompieri */try{for(const u of SOC90.U){if(u.dead||!u.m||!u.m.visible)continue;cand(Math.hypot(u.x-x,u.z-z)-(u.k=='pompieri'?2.5:1),()=>{const m=carWith(loc(u.m));u.m.visible=false;u.dead=1;enter(m,u.x,u.z,u.yaw,u.k=='pompieri'?{top:75,ac:14,wp:2,txt:'Camion dei pompieri rubato!',sir:'pompieri'}:{top:90,ac:22,wp:2,txt:'Ambulanza rubata!',sir:'ambulanza'})})}}catch(e){}
   /* auto parcheggiate vere */try{for(const s of PARK88.SL){if(!s.r||!s.w.visible)continue;cand(Math.hypot(s.r.x-x,s.r.z-z),()=>{const t=PARK88.take(s.r.x,s.r.z,.5);if(!t)return;const m=carWith(t.o);m.position.set(t.x,H00(t.x,t.z),t.z);m.rotation.y=t.yaw;enter(m,t.x,t.z,t.yaw,{wp:1,txt:'Auto parcheggiata rubata!'})})}}catch(e){}
+  /* v135: auto parcheggiate del mondo grande (il posto resta vuoto) */try{for(const m of MV102.PK){if(!m.visible||!m.userData.pk)continue;const k=m.userData.pk;cand(Math.hypot(k.x-x,k.z-z),()=>{const n=carWith(loc(m));m.visible=false;MV102.GONE.add(k.key);n.position.set(k.x,k.y,k.z);n.rotation.y=k.yaw;enter(n,k.x,k.z,k.yaw,{wp:1,txt:'Auto parcheggiata rubata!'})})}}catch(e){}
   if(best){best();return true}return false}
  /* Vespa del traffico: diventa una Vespa vera da guidare (non un'auto) */
  function vespa(q){keep();me.m=new THREE.Object3D();setVeh('vespa');me.x=q.x;me.z=q.z;me.yaw=q.yaw;me.vx=me.vz=0;foot=0;tg=me;man.m.visible=false;

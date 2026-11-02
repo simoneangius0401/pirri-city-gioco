@@ -30,6 +30,7 @@
   const COL={0:0x45474b,1:0x45474b,2:0x3e4044,3:0x3e4044,4:0x404246,5:0x404246,6:0x46484b,7:0x48494c,9:0x55565a,10:0xb4ada0,11:0x9a5a4a,12:0x9a8868,13:0xbdb5a5,14:0xa9a397,15:0x9f9070,20:0x6d655b};
   const RW=d.r.map(r=>{const c=r[0],w=r[1]/10,fl=r[2],br=fl&1,st=br?3:2,P=[];for(let k=4;k+1<r.length;k+=st)P.push([ox+r[k]/10,oz+r[k+1]/10,br?r[k+2]/10:null]);return{c,w,br,P}});
   for(const r of RW){if(r.c>=10&&r.c!=13)continue;for(let k=0;k<r.P.length-1;k++){const a=r.P[k],b=r.P[k+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]),n=Math.max(1,Math.ceil(L/12));for(let s=0;s<=n;s++){const x=a[0]+(b[0]-a[0])*s/n,z=a[1]+(b[1]-a[1])*s/n,key=sk(x,z);let L2=SEG.get(key);if(!L2)SEG.set(key,L2=[]);L2.push([a[0],a[1],b[0],b[1],r.w/2,r])}}}
+  const trim=(P,d)=>{let L=0;for(let k=1;k<P.length;k++)L+=Math.hypot(P[k][0]-P[k-1][0],P[k][1]-P[k-1][1]);if(L<2*d+2)return null;const cut=(Q,dd)=>{const o=[];let acc=0;for(let k=1;k<Q.length;k++){const a=Q[k-1],b=Q[k],l=Math.hypot(b[0]-a[0],b[1]-a[1]);if(acc+l<dd){acc+=l;continue}const f=(dd-acc)/(l||1);o.push([a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f,a[2]!=null?a[2]+(b[2]-a[2])*f:null]);for(let q=k;q<Q.length;q++)o.push(Q[q]);return o}return Q};return cut(cut(P,d).reverse(),d).reverse()};
   const onOther=(x,z,me)=>{const L2=SEG.get(sk(x,z));if(!L2)return false;for(const s of L2){if(s[5]===me)continue;const dx=s[2]-s[0],dz=s[3]-s[1],l=dx*dx+dz*dz||1,t=Math.max(0,Math.min(1,((x-s[0])*dx+(z-s[1])*dz)/l));if(Math.hypot(x-s[0]-dx*t,z-s[1]-dz*t)<s[4]+.3)return true}return false};
   const rib=(pts,hw,off,y0,col,dash,me,skip)=>{const C=rgb(col);let prev=null;
    for(let k=0;k<pts.length-1;k++){const a=pts[k],b=pts[k+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]);if(L<.05)continue;const ux=(b[0]-a[0])/L,uz=(b[1]-a[1])/L,nx=-uz,nz=ux,ns=Math.max(1,Math.ceil(L/8));
@@ -51,7 +52,7 @@
    if(c==20){rib(r.P,1.6,0,lift,COL[20]);rib(r.P,.05,.72,lift+.12,0x8f8f8f);rib(r.P,.05,-.72,lift+.12,0x8f8f8f);continue}
    rib(r.P,r.w/2,0,lift,COL[c]||0x48494c);
    if(c<=7&&r.w>=5.5){if(c<=1){rib(r.P,.08,r.w/2-.35,lift+.012,0xe8e8e2);rib(r.P,.08,-r.w/2+.35,lift+.012,0xe8e8e2)}else rib(r.P,.07,0,lift+.012,0xe8e8e2,1)}
-   if(dense&&c>=2&&c<=7&&!r.br){const sw=1.7,so=r.w/2+sw/2;const sk2=(x,z)=>onOther(x,z,r);rib(r.P,sw/2,so,lift+.25,0xc7c1b4,0,r,sk2);rib(r.P,sw/2,-so,lift+.25,0xc7c1b4,0,r,sk2);kerb(r.P,r.w/2,lift,lift+.25,0xa9a59c,sk2);kerb(r.P,-r.w/2,lift,lift+.25,0xa9a59c,sk2)}}
+   if(dense&&c>=2&&c<=7&&!r.br){const sw=1.7,so=r.w/2+sw/2;const sk2=(x,z)=>onOther(x,z,r);/* v135: marciapiede accorciato ai capi (incroci): prima a volte attraversava la strada vicina se stava nel quadrato accanto */const TP=trim(r.P,r.w/2+3);if(TP){rib(TP,sw/2,so,lift+.25,0xc7c1b4,0,r,sk2);rib(TP,sw/2,-so,lift+.25,0xc7c1b4,0,r,sk2);kerb(TP,r.w/2,lift,lift+.25,0xa9a59c,sk2);kerb(TP,-r.w/2,lift,lift+.25,0xa9a59c,sk2)}}}
   out.road=R.f();
   // --- edifici ---
   const W=new B(),RF=new B(),boxes=[];const Wd=2048,Hh=1024,RH=204;
@@ -88,7 +89,7 @@
    for(let zc=zmin+1.5;zc<zmax+1.4;zc+=3){const zz=Math.min(zc,zmax-.01),xs=[];for(let i=0;i<n;i++){const j=(i+1)%n,az=P[2*i+1],bz=P[2*j+1];if((az<=zz)!=(bz<=zz)){xs.push(P[2*i]+(zz-az)/(bz-az)*(P[2*j]-P[2*i]))}}xs.sort((a,b)=>a-b);for(let k=0;k+1<xs.length;k+=2)if(xs[k+1]-xs[k]>.3)boxes.push(xs[k],zz-1.5,xs[k+1],zz+1.5,top)}}
   out.walls=W.f();out.roofs=RF.f();out.boxes=new Float32Array(boxes);out.win=new Float32Array(WN);out.bal=new Float32Array(BN);
   // --- alberi ---
-  const tr=[],tstep=lod?2:6;for(let k=0;k+1<d.t.length;k+=tstep){const x=ox+d.t[k]/10,z=oz+d.t[k+1]/10;tr.push(x,ht(x,z),z,.8+hs(x*3.1+z)*.7)}out.trees=new Float32Array(tr);
+  const tr=[],tstep=2;/* v135: stessi alberi anche nei quadrati lontani (prima 1 su 3: avvicinandosi 'spuntavano' gli altri) */for(let k=0;k+1<d.t.length;k+=tstep){const x=ox+d.t[k]/10,z=oz+d.t[k+1]/10;tr.push(x,ht(x,z),z,.8+hs(x*3.1+z)*.7)}out.trees=new Float32Array(tr);
   return out}
  self.onmessage=async e=>{const m=e.data;
   if(m.t=='init'){Q=m.Q;QH=m.QH;postMessage({t:'ok'});return}
