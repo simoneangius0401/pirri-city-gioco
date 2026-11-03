@@ -53,6 +53,23 @@
    rib(r.P,r.w/2,0,lift,COL[c]||0x48494c);
    if(c<=7&&r.w>=5.5){if(c<=1){rib(r.P,.08,r.w/2-.35,lift+.012,0xe8e8e2);rib(r.P,.08,-r.w/2+.35,lift+.012,0xe8e8e2)}else rib(r.P,.07,0,lift+.012,0xe8e8e2,1)}
    if(dense&&c>=2&&c<=7&&!r.br){const sw=1.7,so=r.w/2+sw/2;const sk2=(x,z)=>onOther(x,z,r);/* v135: marciapiede accorciato ai capi (incroci): prima a volte attraversava la strada vicina se stava nel quadrato accanto */const TP=trim(r.P,r.w/2+3);if(TP){rib(TP,sw/2,so,lift+.25,0xc7c1b4,0,r,sk2);rib(TP,sw/2,-so,lift+.25,0xc7c1b4,0,r,sk2);kerb(TP,r.w/2,lift,lift+.25,0xa9a59c,sk2);kerb(TP,-r.w/2,lift,lift+.25,0xa9a59c,sk2)}}}
+  /* v137 (strade come a Pirri in tutta la mappa): strisce pedonali vere, linee di stop e di precedenza nei punti OSM, posizione dei semafori (d.x = [tipo,x,z,...]: 0 strisce, 1 semaforo, 2 stop, 3 dare precedenza) */
+  const SIG=[];if(d.x&&d.x.length){const WC=rgb(0xeeeeea);
+   const rect=(cx,cz,ux,uz,a0,a1,o0,o1,y0)=>{const nx=-uz,nz=ux,P=[[a0,o0],[a1,o0],[a1,o1],[a0,o1]].map(([a,o])=>{const x=cx+ux*a+nx*o,z=cz+uz*a+nz*o;return[x,ht(x,z)+y0,z]});for(const i of[0,1,2,0,2,3]){R.p.push(...P[i]);R.n.push(0,1,0);R.u.push(0,0);R.c.push(...WC)}};
+   for(let k=0;k+2<d.x.length;k+=3){const ty=d.x[k],px=ox+d.x[k+1]/10,pz=oz+d.x[k+2]/10;let best=null,bd=1e9;
+    for(let gi=-1;gi<=1;gi++)for(let gj=-1;gj<=1;gj++){const L2=SEG.get((Math.floor(px/12)+gi)+','+(Math.floor(pz/12)+gj));if(!L2)continue;for(const sg of L2){const r=sg[5];if(r.c>9||r.br)continue;const dx=sg[2]-sg[0],dz=sg[3]-sg[1],l=dx*dx+dz*dz||1,t=Math.max(0,Math.min(1,((px-sg[0])*dx+(pz-sg[1])*dz)/l)),qx=sg[0]+dx*t,qz=sg[1]+dz*t,dd=Math.hypot(px-qx,pz-qz);if(dd<bd&&dd<sg[4]+4){bd=dd;const L=Math.sqrt(l);best={x:qx,z:qz,ux:dx/L,uz:dz/L,w:r.w,r}}}}
+    if(!best)continue;const {x,z,ux,uz,w,r}=best,lift=.06+(20-Math.min(r.c,20))*.004+.022;
+    if(ty==0){if(w<4)continue;for(let o=-w/2+.55;o<=w/2-.45;o+=1)rect(x,z,ux,uz,-1.25,1.25,o,o+.5,lift)}
+    else if(ty==1){for(const sd of[1,-1]){const o=(w/2+.7)*sd;SIG.push(x-uz*o,ht(x-uz*o,z+ux*o),z+ux*o,Math.atan2(-ux*sd,-uz*sd))}}
+    else{/* verso l'incrocio: il capo della strada piu' vicino */const P0=r.P[0],P1=r.P[r.P.length-1],toEnd=Math.hypot(P1[0]-x,P1[1]-z)<Math.hypot(P0[0]-x,P0[1]-z)?1:-1,dx=ux*toEnd,dz=uz*toEnd;
+     if(ty==2)rect(x,z,dx,dz,-.25,.25,0,w/2-.2,lift);else for(let o=.3;o<w/2-.3;o+=.9)rect(x,z,dx,dz,-.3,.3,o,o+.5,lift)}}}
+  out.sig=new Float32Array(SIG);
+  /* v137 (recinzioni come a Pirri): muri, recinzioni e siepi veri (d.f = [tipo,x0,z0,x1,z1,...]) */
+  if(d.f&&d.f.length){const FC=[rgb(0xb9ad97),rgb(0x5d6166),rgb(0x3f5a2e),rgb(0xb8bcc0)],FH=[1.8,1.5,1.3,.8],FW=[.25,.05,.8,.1];
+   const wall=(ax,az,bx,bz,h,w,C)=>{const L=Math.hypot(bx-ax,bz-az);if(L<.1)return;const ux=(bx-ax)/L,uz=(bz-az)/L,nx=-uz*w/2,nz=ux*w/2,ya=ht(ax,az)-.2,yb=ht(bx,bz)-.2;
+    const S=[[ax+nx,az+nz,bx+nx,bz+nz,-uz,ux],[bx-nx,bz-nz,ax-nx,az-nz,uz,-ux]];for(const [x0,z0,x1,z1,qx,qz] of S){const P=[[x0,ya,z0],[x1,yb,z1],[x1,yb+h+.2,z1],[x0,ya+h+.2,z0]];for(const i of[0,1,2,0,2,3]){R.p.push(...P[i]);R.n.push(qx,0,qz);R.u.push(0,0);R.c.push(...C)}}
+    if(w>.15){const P=[[ax+nx,ya+h,az+nz],[bx+nx,yb+h,bz+nz],[bx-nx,yb+h,bz-nz],[ax-nx,ya+h,az-nz]];for(const i of[0,1,2,0,2,3]){R.p.push(...P[i]);R.n.push(0,1,0);R.u.push(0,0);R.c.push(...C.map(v=>v*1.08))}}};
+   for(let k=0;k+4<d.f.length;k+=5){const ty=d.f[k];wall(ox+d.f[k+1]/10,oz+d.f[k+2]/10,ox+d.f[k+3]/10,oz+d.f[k+4]/10,FH[ty],FW[ty],FC[ty])}}
   out.road=R.f();
   // --- edifici ---
   const W=new B(),RF=new B(),boxes=[];const Wd=2048,Hh=1024,RH=204;
@@ -96,7 +113,7 @@
   if(m.t=='tile'){try{const [i,j]=m.key.split('_').map(Number),bk=Math.floor(i/m.bs)+'_'+Math.floor(j/m.bs);
     let pr=BC.get(bk);if(!pr){pr=fetch(m.url+'b_'+bk+'.json').then(r=>r.json());BC.set(bk,pr);if(BC.size>10)BC.delete(BC.keys().next().value)}
     const d=Object.assign({},(await pr)[m.key]);d.key=m.key;d.core=m.core;
-    let img=null;if(d.img){try{const bs=atob(d.img),u8=new Uint8Array(bs.length);for(let q=0;q<bs.length;q++)u8[q]=bs.charCodeAt(q);img=await createImageBitmap(new Blob([u8],{type:'image/jpeg'}))}catch(er){}}delete d.img;
-    const o=build(d,m.lod);o.img=img;o.data=d;const tf=[];for(const k of['ground','water','road','walls','roofs'])if(o[k])for(const a of Object.values(o[k]))tf.push(a.buffer);tf.push(o.boxes.buffer,o.trees.buffer,o.win.buffer,o.bal.buffer,o.bush.buffer);if(img)tf.push(img);
+    let img=null;/* v137: foto del quadrato in un file .jpg a parte (mondo/img/t_I_J.jpg) */if(d.im){try{const r=await fetch(m.url+'img/t_'+m.key+'.jpg');if(r.ok)img=await createImageBitmap(await r.blob())}catch(er){}}if(d.img){try{const bs=atob(d.img),u8=new Uint8Array(bs.length);for(let q=0;q<bs.length;q++)u8[q]=bs.charCodeAt(q);img=await createImageBitmap(new Blob([u8],{type:'image/jpeg'}))}catch(er){}}delete d.img;
+    const o=build(d,m.lod);o.img=img;o.data=d;const tf=[];for(const k of['ground','water','road','walls','roofs'])if(o[k])for(const a of Object.values(o[k]))tf.push(a.buffer);tf.push(o.boxes.buffer,o.trees.buffer,o.win.buffer,o.bal.buffer,o.bush.buffer,o.sig.buffer);if(img)tf.push(img);
     postMessage(o,tf)}catch(er){postMessage({key:m.key,err:String(er)})}}
-  if(m.t=='lod'){try{const o=build(Object.assign({},m.d,{g:0}),m.lod);const tf=[];for(const k of['road','walls','roofs'])for(const a of Object.values(o[k]))tf.push(a.buffer);tf.push(o.boxes.buffer,o.trees.buffer,o.win.buffer,o.bal.buffer,o.bush.buffer);delete o.ground;delete o.water;o.relod=1;postMessage(o,tf)}catch(er){postMessage({key:m.key,err:String(er)})}}};
+  if(m.t=='lod'){try{const o=build(Object.assign({},m.d,{g:0}),m.lod);const tf=[];for(const k of['road','walls','roofs'])for(const a of Object.values(o[k]))tf.push(a.buffer);tf.push(o.boxes.buffer,o.trees.buffer,o.win.buffer,o.bal.buffer,o.bush.buffer,o.sig.buffer);delete o.ground;delete o.water;o.relod=1;postMessage(o,tf)}catch(er){postMessage({key:m.key,err:String(er)})}}};
