@@ -6711,7 +6711,7 @@ const MONDO82=(()=>{
    wk=w;MODE=kind;w.onmessage=onm;w.onerror=()=>{if(!wOK&&wk===w){if(kind=='file')startW('blob');else local()}};w.postMessage({t:'init',Q:{x0:X0,z0:Z0,s:Q.s,nx:Q.nx,nz:Q.nz},QH:QH.slice()});
    setTimeout(()=>{if(!wOK&&wk===w){if(kind=='file')startW('blob');else local()}},kind=='file'?6000:45000)};
   startW('file')
-  fetch(base+'mappa.json').then(r=>r.json()).then(a=>{window.MAP82=a;if(window.NAV55R)NAV55R()}).catch(e=>console.warn('mappa mondo',e));MB82[0]=IDX.i0*IDX.T+5;MB82[1]=IDX.i1*IDX.T-5;MB82[2]=IDX.j0*IDX.T+5;MB82[3]=IDX.j1*IDX.T-5}
+  fetch(base+'mappa.json').then(r=>r.json()).then(a=>{window.MAP82=a;if(window.NAV55R)NAV55R()}).catch(e=>console.warn('mappa mondo',e));MB82[0]=IDX.i0*IDX.T+5;MB82[1]=IDX.i1*IDX.T-5;MB82[2]=IDX.j0*IDX.T+5;MB82[3]=IDX.j1*IDX.T-5;window.MB82OK=1}
  const RNEAR=320;let RLOAD=900;
  function tick(now){if(!IDX)return;
   // un risultato pronto per fotogramma: niente scatti
@@ -9133,8 +9133,9 @@ let SOC90E='';const SOC90=(()=>{const TPL={},busy={},V=new THREE.Vector3();let A
    for(const s of[-1,1]){const m=new THREE.Mesh(new THREE.BoxGeometry(.26,.11,.42),new THREE.MeshBasicMaterial({color:0x1f5cff}));m.position.set(-.2,ry+.11,s*.33);m.name='lamp90';w.add(m)}
    const cv=document.createElement('canvas');cv.width=512;cv.height=96;const cx=cv.getContext('2d');cx.fillStyle='#fff';cx.font='bold 78px Arial';cx.textAlign='center';cx.textBaseline='middle';cx.fillText('POLIZIA',256,50);const tx=new THREE.CanvasTexture(cv);
    for(const s of[-1,1]){const pl=new THREE.Mesh(new THREE.PlaneGeometry(1.5,.28),new THREE.MeshBasicMaterial({map:tx,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2}));pl.position.set(0,.68,s>0?bb.max.z+.012:bb.min.z-.012);if(s<0)pl.rotation.y=Math.PI;pl.userData.noDet=1;w.add(pl)}
-   PT=w;console.log('MODS volanti Giulia pronte')}catch(e){console.warn('volante',e)}}
- function copTick(now){if(!PT){polT();return}const px=cam.position.x,pz=cam.position.z,bl=Math.floor(now*6)%2;
+   PT=w;console.log('MODS volanti Giulia pronte')}catch(e){console.warn('volante',e);setTimeout(()=>{pb=0},8000)/* v138b: riprova */}}
+ /* v138b: la Giulia si carica subito all'avvio (prima solo quando arrivava la prima volante: nel frattempo si vedeva la volante a scatole) */setTimeout(()=>{try{polT()}catch(e){}},4000);
+ function copTick(now){if(!PT){polT();/* v138b: finche' la Giulia non e' pronta niente volante a scatole */for(const c of cops.concat(blk?blk.c:[]))if(c.m)for(const q of c.m.children)q.visible=false;return}const px=cam.position.x,pz=cam.position.z,bl=Math.floor(now*6)%2;
   for(const c of cops.concat(blk?blk.c:[])){if(!c.m)continue;const u=c.m.userData;if(!u.p90){const v=PT.clone(true);v.visible=false;c.m.add(v);u.p90=v;u.o90=c.m.children.filter(q=>q!==v)}
    const near=true;/* v93: sempre la Giulia (prima da lontano tornava la volante vecchia a scatole) */if(u.n90!==near){u.n90=near;u.p90.visible=near;for(const q of u.o90)q.visible=!near}
    if(near){let i=0;u.p90.traverse(o=>{if(o.name==='lamp90')o.material.color.setHex((i++%2)==bl?0x2b6dff:0x061a55)})}}}
@@ -10908,7 +10909,7 @@ const NOV115=(()=>{
   '#n115 .r{display:flex;gap:8px;align-items:center;background:#1c2436;border-radius:10px;padding:8px}#n115 .r div{flex:1}#n115 small{display:block;font-weight:400;color:#aab4c8;margin-top:2px}'+
   '#n115 .v{padding:9px 12px;border-radius:9px;background:#2f7d4f;white-space:nowrap}#n115 .x{text-align:center;padding:10px;border-radius:9px;background:#24304a}#n115 .t{color:#ffd23f;font-size:11px}#n115 .n{color:#8fb3ff;font-size:11px}';
  document.head.appendChild(st);
- function vai(o){/* v136: sulla pagina di claude.ai il mondo grande e' quello vecchio (piu' piccolo): i paesi nuovi ci sono solo sul sito GitHub */try{if(typeof MB82!=='undefined'&&MB82&&(o.x<MB82[0]||o.x>MB82[1]||o.z<MB82[2]||o.z>MB82[3])){msg('Questa zona c’è solo nella versione su GitHub (Chrome): simoneangius0401.github.io/pirri-city-gioco');return}}catch(e){}try{const yaw=Math.atan2(o.lz-o.z,o.lx-o.x);
+ function vai(o){/* v136: sulla pagina di claude.ai il mondo grande e' quello vecchio (piu' piccolo): i paesi nuovi ci sono solo sul sito GitHub *//* v138b: finche' l'indice del mondo grande non e' arrivato i bordi sono quelli di Pirri: aspettare invece di dire 'solo su GitHub' */if(!window.MB82OK&&!(o.x>-700&&o.x<6000&&o.z>-700&&o.z<6400)){o.__w=(o.__w||0)+1;if(o.__w<=40){if(o.__w==1)msg('Carico la mappa…');setTimeout(()=>vai(o),1000);return}}try{if(window.MB82OK&&typeof MB82!=='undefined'&&MB82&&(o.x<MB82[0]||o.x>MB82[1]||o.z<MB82[2]||o.z>MB82[3])){msg('Questa zona c’è solo nella versione su GitHub (Chrome): simoneangius0401.github.io/pirri-city-gioco');return}}catch(e){}try{const yaw=Math.atan2(o.lz-o.z,o.lx-o.x);
    if(o.p){if(!foot)toggle();man.x=o.x;man.z=o.z;man.vx=man.vz=0;man.yaw=yaw}else{if(foot)toggle();me.x=o.x;me.z=o.z;me.vx=me.vz=0;me.yaw=yaw}
    try{camY=0;camP=0}catch(e){}msg('🆕 '+o.n)}catch(e){msg('Non riesco a portarti lì')}}
  /* dopo = mostra le voci con versione maggiore di questo numero */
