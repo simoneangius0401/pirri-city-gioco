@@ -75,6 +75,27 @@
   const W=new B(),RF=new B(),boxes=[];const Wd=2048,Hh=1024,RH=204;
   const quad=(x0,z0,x1,z1,a0,a1,b0,b1,nx,nz,col,row,v)=>{const e=2/Wd,u0=v/8+e,u1=(v+1)/8-e,vb=1-(row+1)*RH/Hh+1.5/Hh,vt=1-row*RH/Hh-1.5/Hh;
    W.p.push(x0,a0,z0,x1,a1,z1,x1,b1,z1,x0,a0,z0,x1,b1,z1,x0,b0,z0);W.u.push(u0,vb,u1,vb,u1,vt,u0,vb,u1,vt,u0,vt);for(let i=0;i<6;i++){W.n.push(nx,0,nz);W.c.push(col[0],col[1],col[2])}};
+  /* v138: tetto a due falde (solo poligoni convessi): colmo lungo il lato piu' lungo, le due falde sono piani esatti; timpani riempiti col colore della facciata */
+  const tri138=(ax,ay,az,bx,by,bz,cx,cy,cz,col)=>{const ux=bx-ax,uy=by-ay,uz=bz-az,vx=cx-ax,vy=cy-ay,vz=cz-az;let nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;if(ny<0){nx=-nx;ny=-ny;nz=-nz;RF.p.push(ax,ay,az,cx,cy,cz,bx,by,bz)}else RF.p.push(ax,ay,az,bx,by,bz,cx,cy,cz);const l=Math.hypot(nx,ny,nz)||1;for(let i=0;i<3;i++){RF.n.push(nx/l,ny/l,nz/l);RF.u.push(0,0);RF.c.push(col[0],col[1],col[2])}};
+  function roof138(P,n,top,rcol,wcol,slope,maxR){if(n<3||n>12)return 0;let sg=0;for(let i=0;i<n;i++){const a=i,b=(i+1)%n,c=(i+2)%n,cr=(P[2*b]-P[2*a])*(P[2*c+1]-P[2*b+1])-(P[2*b+1]-P[2*a+1])*(P[2*c]-P[2*b]);if(cr<-1e-3)return 0}
+   let bl=0,ux=1,uz=0,cx=0,cz=0;for(let i=0;i<n;i++){const j=(i+1)%n,dx=P[2*j]-P[2*i],dz=P[2*j+1]-P[2*i+1],L=Math.hypot(dx,dz);cx+=P[2*i]/n;cz+=P[2*i+1]/n;if(L>bl){bl=L;ux=dx/L;uz=dz/L}}
+   const vx=-uz,vz=ux,D=[];let dmin=1e9,dmax=-1e9;for(let i=0;i<n;i++){const d=(P[2*i]-cx)*vx+(P[2*i+1]-cz)*vz;D.push(d);dmin=Math.min(dmin,d);dmax=Math.max(dmax,d)}
+   const d0=(dmin+dmax)/2,hw=(dmax-dmin)/2;if(hw<1.5||hw>16)return 0;const R=Math.min(maxR,hw*slope),hy=d=>top+R*(1-Math.abs(d-d0)/hw);
+   for(const sd of[1,-1]){const Q=[];for(let i=0;i<n;i++){const j=(i+1)%n,a=(D[i]-d0)*sd,b=(D[j]-d0)*sd;if(a>=0)Q.push(P[2*i],P[2*i+1],D[i]);if((a>0&&b<0)||(a<0&&b>0)){const t=a/(a-b);Q.push(P[2*i]+(P[2*j]-P[2*i])*t,P[2*i+1]+(P[2*j+1]-P[2*i+1])*t,d0)}}
+    const m=Q.length/3;if(m<3)continue;for(let k=1;k+1<m;k++)tri138(Q[0],hy(Q[2]),Q[1],Q[3*k],hy(Q[3*k+2]),Q[3*k+1],Q[3*k+3],hy(Q[3*k+5]),Q[3*k+4],rcol)}
+   for(let i=0;i<n;i++){const j=(i+1)%n,L=Math.hypot(P[2*j]-P[2*i],P[2*j+1]-P[2*i+1]);if(L<.05)continue;const nx=(P[2*j+1]-P[2*i+1])/L,nz=-(P[2*j]-P[2*i])/L;
+    const pts=[[P[2*i],P[2*i+1],D[i]]];if((D[i]-d0)*(D[j]-d0)<0){const t=(D[i]-d0)/(D[i]-D[j]);pts.push([P[2*i]+(P[2*j]-P[2*i])*t,P[2*i+1]+(P[2*j+1]-P[2*i+1])*t,d0])}pts.push([P[2*j],P[2*j+1],D[j]]);
+    for(let k=0;k+1<pts.length;k++){const A=pts[k],B=pts[k+1],h0=hy(A[2]),h1=hy(B[2]);if(Math.max(h0,h1)-top>.05)quad(A[0],A[1],B[0],B[1],top,top,h0,h1,nx,nz,wcol,3,7)}}
+   return 1}
+  /* v138: campanile delle chiese (lato stretto del lato piu' lungo, dentro la sagoma), tetto a piramide */
+  function tower138(P,n,gmin,top,boxes){let cx=0,cz=0,sxx=0,szz=0,sxz=0,ar=0;for(let i=0;i<n;i++){cx+=P[2*i]/n;cz+=P[2*i+1]/n}for(let i=0;i<n;i++){const j=(i+1)%n,dx=P[2*i]-cx,dz=P[2*i+1]-cz;sxx+=dx*dx;szz+=dz*dz;sxz+=dx*dz;ar+=P[2*i]*P[2*j+1]-P[2*j]*P[2*i+1]}if(Math.abs(ar)/2<80)return;
+   /* asse principale della sagoma: il campanile va a un capo, rientrato verso il centro */const an=.5*Math.atan2(2*sxz,sxx-szz),ux=Math.cos(an),uz=Math.sin(an),vx=-uz,vz=ux;let pm=-1e9,ex=0,ez=0;for(let i=0;i<n;i++){const pr=(P[2*i]-cx)*ux+(P[2*i+1]-cz)*uz;if(pr>pm){pm=pr;ex=P[2*i];ez=P[2*i+1]}}
+   const S=Math.min(5.5,Math.max(3.6,pm*.3)),dl=Math.hypot(cx-ex,cz-ez)||1,hx=ex+(cx-ex)/dl*S*.8,hz=ez+(cz-ez)/dl*S*.8;
+   const th=Math.max(top+8,gmin+18),col=rgb(0xd2c3a3),C=[[-1,-1],[1,-1],[1,1],[-1,1]].map(([a,b])=>[hx+(ux*a+vx*b)*S/2,hz+(uz*a+vz*b)*S/2]);
+   for(let k=0;k<4;k++){const A=C[k],B=C[(k+1)%4],L=Math.hypot(B[0]-A[0],B[1]-A[1]),nx=(B[1]-A[1])/L,nz=-(B[0]-A[0])/L,o=nx*(A[0]-hx)+nz*(A[1]-hz)>0?1:-1;
+    quad(A[0],A[1],B[0],B[1],gmin-.3,gmin-.3,th-3.2,th-3.2,nx*o,nz*o,col,3,7);quad(A[0],A[1],B[0],B[1],th-3.2,th-3.2,th,th,nx*o,nz*o,rgb(0x8a8174),1,7);
+    tri138(A[0],th,A[1],B[0],th,B[1],hx,th+S*.9,hz,rgb(0xa9583a))}
+   let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const c of C){x0=Math.min(x0,c[0]);x1=Math.max(x1,c[0]);z0=Math.min(z0,c[1]);z1=Math.max(z1,c[1])}boxes.push(x0,z0,x1,z1,th)}
   /* v128: finestre e balconi per le finestre 3D vicine (FIN127): [x,y,z,nx,nz,w,h,tipo] e [x,y,z,nx,nz,w,parapetto] */
   const WN=[],BN=[],WU=[[[1.6,1,1.15,1.45],[5.7,1,1.15,1.45]],[[1.4,.1,1.1,2.3,1],[5.6,1,1.15,1.45]],[[.9,1,1.05,1.45],[3.7,1,1.05,1.45],[6.5,1,1.05,1.45]],[[1.6,.1,1.1,2.3,1],[5.8,.1,1.1,2.3,1]],
    [[.9,1,1.05,1.45],[3.7,.1,1.1,2.3,1],[6.5,1,1.05,1.45]],[[1.3,.1,1.1,2.3,1],[5.9,.1,1.1,2.3,1]],[[2,1,1.1,1.45],[5.4,1,1.1,1.45]]],
@@ -97,10 +118,15 @@
      if(floors<=3||plain)quad(x0,z0,x1,z1,g0,g1,top,top,nx,nz,col,plain?0:floors-1,v);
      else{const T0=top-g0,T1=top-g1;let f=3;quad(x0,z0,x1,z1,g0,g1,g0+T0*3/floors,g1+T1*3/floors,nx,nz,col,2,v);while(f<floors){const c=floors-f>=2?2:1;quad(x0,z0,x1,z1,g0+T0*f/floors,g1+T1*f/floors,g0+T0*(f+c)/floors,g1+T1*(f+c)/floors,nx,nz,col,c==2?4:3,v);f+=c}}}}
    // tetto piano col colore vero preso dalla foto
-   let rcol=rgb(rc||0xb8b2a6);rcol=rcol.map(c=>Math.min(1,c*1.08));const tr=ear(P);
-   for(let q=0;q<tr.length;q+=3)for(const t of[tr[q],tr[q+2],tr[q+1]]){RF.p.push(P[2*t],top,P[2*t+1]);RF.n.push(0,1,0);RF.u.push(0,0);RF.c.push(...rcol)}
+   let rcol=rgb(rc||0xb8b2a6);rcol=rcol.map(c=>Math.min(1,c*1.08));
+   /* v138: tetto a due falde dove la foto mostra le tegole (colore cotto) e sulle chiese; chiese col campanile */
+   const rr=rc>>16&255,rg=rc>>8&255,rb=rc&255,cotto=rc&&rr-rb>55&&rr-rg>25,wcol=base||rgb(PAL[Math.floor(hs(sb)*PAL.length)]);
+   let pit=0;if((cotto&&sp==0&&H<=16&&Math.abs(ar)/2<900)||sp==1){if(sp==1)rcol=rgb(0xb0623f);pit=roof138(P,n,top,rcol,wcol,sp==1?.55:.42,sp==1?7:3.2)}
+   if(sp==1)tower138(P,n,gmin,top,boxes);
+   if(!pit){const tr=ear(P);
+   for(let q=0;q<tr.length;q+=3)for(const t of[tr[q],tr[q+2],tr[q+1]]){RF.p.push(P[2*t],top,P[2*t+1]);RF.n.push(0,1,0);RF.u.push(0,0);RF.c.push(...rcol)}}
    // muretto in cima ai palazzi alti (parapetto)
-   if(H>8&&sp==0&&lod){for(let i=0;i<n;i++){const j=(i+1)%n,ax=P[2*i],az=P[2*i+1],bx=P[2*j],bz=P[2*j+1],L=Math.hypot(bx-ax,bz-az);if(L<.5)continue;const nx=(bz-az)/L,nz=-(bx-ax)/L;quad(ax,az,bx,bz,top,top,top+.9,top+.9,nx,nz,rgb(0xe9e5dc),3,7)}}
+   if(H>8&&sp==0&&lod&&!pit){for(let i=0;i<n;i++){const j=(i+1)%n,ax=P[2*i],az=P[2*i+1],bx=P[2*j],bz=P[2*j+1],L=Math.hypot(bx-ax,bz-az);if(L<.5)continue;const nx=(bz-az)/L,nz=-(bx-ax)/L;quad(ax,az,bx,bz,top,top,top+.9,top+.9,nx,nz,rgb(0xe9e5dc),3,7)}}
    // urti: strisce di 3 m lungo z
    let zmin=1e9,zmax=-1e9;for(let i=0;i<n;i++){zmin=Math.min(zmin,P[2*i+1]);zmax=Math.max(zmax,P[2*i+1])}
    for(let zc=zmin+1.5;zc<zmax+1.4;zc+=3){const zz=Math.min(zc,zmax-.01),xs=[];for(let i=0;i<n;i++){const j=(i+1)%n,az=P[2*i+1],bz=P[2*j+1];if((az<=zz)!=(bz<=zz)){xs.push(P[2*i]+(zz-az)/(bz-az)*(P[2*j]-P[2*i]))}}xs.sort((a,b)=>a-b);for(let k=0;k+1<xs.length;k+=2)if(xs[k+1]-xs[k]>.3)boxes.push(xs[k],zz-1.5,xs[k+1],zz+1.5,top)}}
