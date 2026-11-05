@@ -8031,7 +8031,7 @@ function gfStep(dt,t){gf.m.visible=gfOn;for(const h of hearts)if(h.visible){h.us
   if(d>.12){const stp=Math.min(d,sp*dt),nx=gf.x+dx/d*stp,nz=gf.z+dz/d*stp,gy=gf.y,sl=(x,z)=>{for(const b of nearLots(x,z))if(x>b.x0&&x<b.x1&&z>b.z0&&z<b.z1&&b.h>gy+.5)return 1;return 0};
    if(!sl(nx,gf.z)){gf.x=nx;mvd+=stp}if(!sl(gf.x,nz)){gf.z=nz;mvd+=stp}gf.stk=(d>3&&mvd<stp*.2)?gf.stk+dt:0}else gf.stk=0;
   const v=mvd/Math.max(dt,.001),want=gf.st==1?man.yaw+Math.PI:(v>.4?Math.atan2(-dz,dx):Math.atan2(-(man.z-gf.z),man.x-gf.x));gf.yaw+=wrap(want-gf.yaw)*Math.min(1,dt*10);
-  gf.y+=(Math.max(H(gf.x,gf.z),roofAt(gf.x,gf.z))-gf.y)*Math.min(1,dt*12);
+  gf.y+=((typeof SW107!=='undefined'?SW107.gy(gf.x,gf.z):Math.max(H(gf.x,gf.z),roofAt(gf.x,gf.z)))-gf.y)*Math.min(1,dt*12);
   gf.m.position.set(gf.x,gf.y+(v>.4?Math.abs(Math.sin(t*10))*.04:0),gf.z);gf.m.rotation.y=gf.yaw;
   if(gf.st==1){gf.ar[0].rotation.set(0,.7,1.8);gf.ar[1].rotation.set(0,-.7,1.8);man.ar[0].rotation.set(0,.55,1.8);man.ar[1].rotation.set(0,-.55,1.8);gf.lg.forEach(l=>l.rotation.set(0,0,0));gf.m.rotation.x=gf.t<1.7?.12:0;if(Math.random()<dt*6)heart((gf.x+man.x)/2,gf.y+2.1,(gf.z+man.z)/2);if(mv>3)gf.t=0}
   else{const q=v>.4?Math.sin(t*(v>6?16:9))*(v>6?.9:.55):0;gf.lg[0].rotation.set(0,0,q);gf.lg[1].rotation.set(0,0,-q);gf.ar[0].rotation.set(0,0,-q);gf.ar[1].rotation.set(0,0,q)}}
@@ -10075,7 +10075,8 @@ const SW107=(()=>{let on=0,gon=0;const A=new Map();
   /* la ragazza: se e' in acqua profonda nuota anche lei */
   if(gl&&gf&&gf.m&&gf.m.visible&&!(gf.par&&gf.par!==scene&&gf.m.parent!==scene)){let g=0;try{g=H(gf.x,gf.z)}catch(e){}const d=deep(gf.x,gf.z,g);gsp+=(Math.hypot(gf.x-glx,gf.z-glz)/Math.max(dt,1e-3)-gsp)*Math.min(1,dt*5);glx=gf.x;glz=gf.z;
    if(d){gf.y=-1.2;gf.m.position.y=-1.2;pose(gl,gsp,dt)}else if(gwas)stop(gl);gwas=d}}
- return{y,tick,get on(){return on}}})();
+ /* v138d: quota della ragazza (senza toccare lo stato del giocatore) */function gy(x,z){const g=H(x,z),r=roofAt(x,z);return deep(x,z,g)&&!(r>.2&&r>g+.5)?-1.2:Math.max(g,r)}
+ return{y,gy,tick,get on(){return on}}})();
 /* Acqua piu' vera (mare, stagni): increspature fatte da tante onde di grandezze e direzioni diverse che scorrono (tre strati, come il mare vero
    visto da vicino e da lontano), riflesso del cielo che cresce guardando di sbieco e trasparenza guardando dall'alto (si vede il fondale vicino a riva),
    riflessi del sole piu' netti. Prima le onde erano poche e regolari (si vedeva il disegno ripetuto). */
@@ -10890,6 +10891,8 @@ const NOV115=(()=>{
   {v:136,n:'Case vere nei paesi',d:'Dove le mappe disegnavano un isolato intero come un solo palazzo, ora ci sono le case e i cortili veri presi dalla foto dall’alto (2590 isolati, 85 mila case: Monastir, Dolianova, Decimomannu, Quartu...)',x:-4695,z:-13605,lx:-4680,lz:-13590,p:1,ver:1},
   {v:136,n:'Monumento ai caduti',d:'Monumenti ai caduti (obelischi) e cippi nei punti veri di OpenStreetMap; cespugli veri anche nella macchia e nei giardini fuori Pirri',x:3440,z:540,lx:3452,lz:553,p:1,ver:1},
   {v:136,n:'Persone più varie',d:'Per strada 5 tipi di persone nuovi: impiegato, ragazzo con la felpa, signore col cappotto e due ragazze',noVai:1,ver:1},
+  {v:138,n:'La ragazza nuota con te',d:'In acqua profonda ora nuota come Manuel invece di restare sospesa sopra l’acqua',noVai:1,ver:1},
+  {v:138,n:'Mare vero nel golfo',d:'Il mare dal Poetto a Villasimius e verso Pula ora è acqua vera (prima in molti punti era terra con alberi sopra)',x:16760,z:7380,lx:16900,lz:7400,p:1,ver:1},
   {v:138,n:'Chiese dei paesi col campanile',d:'Le 249 chiese delle mappe nei paesi e in città ora hanno il campanile in pietra col tetto a punta e il tetto di tegole (qui: Villasimius)',x:36246,z:13212,lx:36206,lz:13172,p:1,ver:1},
   {v:138,n:'Tetti di tegole nei paesi',d:'Dove la foto dall’alto mostra le tegole, le case hanno il tetto a due falde con i timpani, in tutta la mappa fuori da Pirri',noVai:1,ver:1},
   {v:138,n:'Insegne in tutta la mappa',d:'Insegne vere di negozi, bar, farmacie e ristoranti anche nei paesi nuovi: 1393 (prima 726)',noVai:1,ver:1},
