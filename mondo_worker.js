@@ -64,6 +64,15 @@
     else{/* verso l'incrocio: il capo della strada piu' vicino */const P0=r.P[0],P1=r.P[r.P.length-1],toEnd=Math.hypot(P1[0]-x,P1[1]-z)<Math.hypot(P0[0]-x,P0[1]-z)?1:-1,dx=ux*toEnd,dz=uz*toEnd;
      if(ty==2)rect(x,z,dx,dz,-.25,.25,0,w/2-.2,lift);else for(let o=.3;o<w/2-.3;o+=.9)rect(x,z,dx,dz,-.3,.3,o,o+.5,lift)}}}
   out.sig=new Float32Array(SIG);
+  /* v139: parcheggi veri (OSM, d.k = [tipo,n,x,z,...]): asfalto a celle da 4 m che seguono il terreno + strisce bianche dei posti (2,5 m) lungo i lati */
+  if(d.k&&d.k.length){const AC=rgb(0x3d3e40),WC2=rgb(0xe6e6e0);const tri=(A,B,C,col)=>{for(const q of[A,B,C]){R.p.push(q[0],q[1],q[2]);R.n.push(0,1,0);R.u.push(0,0);R.c.push(...col)}};
+   for(const pk of d.k){const n=pk[1],X=[],Z=[];for(let q=0;q<n;q++){X.push(ox+pk[2+2*q]/10);Z.push(oz+pk[3+2*q]/10)}
+    const inP=(x,z)=>{let c=false;for(let i=0,j=n-1;i<n;j=i++)if((Z[i]>z)!=(Z[j]>z)&&x<(X[j]-X[i])*(z-Z[i])/(Z[j]-Z[i])+X[i])c=!c;return c};
+    let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(let q=0;q<n;q++){x0=Math.min(x0,X[q]);x1=Math.max(x1,X[q]);z0=Math.min(z0,Z[q]);z1=Math.max(z1,Z[q])}
+    const G=4,L=.07;for(let x=x0;x<x1;x+=G)for(let z=z0;z<z1;z+=G){const cx=x+G/2,cz=z+G/2;if(!inP(cx,cz))continue;const A=[x,ht(x,z)+L,z],B=[x+G,ht(x+G,z)+L,z],C=[x+G,ht(x+G,z+G)+L,z+G],D=[x,ht(x,z+G)+L,z+G];tri(A,C,B,AC);tri(A,D,C,AC)}
+    for(let q=0;q<n;q++){const ax=X[q],az=Z[q],bx=X[(q+1)%n],bz=Z[(q+1)%n],l=Math.hypot(bx-ax,bz-az);if(l<8)continue;const ux=(bx-ax)/l,uz=(bz-az)/l,nx=uz,nz=-ux;/* interno = a destra del lato (poligono antiorario: verso -normale esterna) */
+     const ix=-nx,iz=-nz;for(let t=1.2;t<l-1.2;t+=2.5){const sx=ax+ux*t+ix*.4,sz=az+uz*t+iz*.4,ex=sx+ix*4.6,ez=sz+iz*4.6;if(!inP(sx+ix*.2,sz+iz*.2)||!inP(ex,ez))continue;const w=.06,px=-iz*w,pz=ix*w,y1=ht(sx,sz)+L+.012,y2=ht(ex,ez)+L+.012;
+      const A=[sx+px,y1,sz+pz],B=[ex+px,y2,ez+pz],C=[ex-px,y2,ez-pz],D=[sx-px,y1,sz-pz];tri(A,C,B,WC2);tri(A,D,C,WC2);tri(A,B,C,WC2);tri(A,C,D,WC2)}}}}
   /* v137 (recinzioni come a Pirri): muri, recinzioni e siepi veri (d.f = [tipo,x0,z0,x1,z1,...]) */
   if(d.f&&d.f.length){const FC=[rgb(0xb9ad97),rgb(0x5d6166),rgb(0x3f5a2e),rgb(0xb8bcc0)],FH=[1.8,1.5,1.3,.8],FW=[.25,.05,.8,.1];
    const wall=(ax,az,bx,bz,h,w,C)=>{const L=Math.hypot(bx-ax,bz-az);if(L<.1)return;const ux=(bx-ax)/L,uz=(bz-az)/L,nx=-uz*w/2,nz=ux*w/2,ya=ht(ax,az)-.2,yb=ht(bx,bz)-.2;
