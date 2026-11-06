@@ -6506,7 +6506,7 @@ const MONDO82=(()=>{
  const inB=(x,z)=>x>X0+1&&x<X1-1&&z>Z0+1&&z<Z1-1;
  let on=false,IDX=null,base='',wk=null,wOK=0,MODE='';
  /* v137: i pacchetti della mappa possono stare su piu' siti (stesso indirizzo simoneangius0401.github.io): IDX.us = elenco di cartelle, IDX.ub[pacchetto] = quale */
- const URL137=k=>{try{if(IDX&&IDX.us&&IDX.ub){const [i,j]=k.split('_').map(Number),bs=IDX.bs||2,bk=Math.floor(i/bs)+'_'+Math.floor(j/bs),u=IDX.ub[bk];if(u!=null&&IDX.us[u])return new URL(IDX.us[u],location.href).href}}catch(e){}return base};const TL=new Map(),PEND=new Set(),READY=[];let lastT=0,nBusy=0;
+ const URL137=k=>{try{if(IDX&&IDX.us&&IDX.ub){const [i,j]=k.split('_').map(Number),bs=IDX.bs||2,bk=Math.floor(i/bs)+'_'+Math.floor(j/bs),u=IDX.ub[bk];if(u!=null&&IDX.us[u])return new URL(IDX.us[u],location.href).href}}catch(e){}return base};/* v140: foto nitide z18 dei paesi (IDX.hk = quadrato -> sito, file img18/t_I_J.jpg da 1024 px) */const H140=k=>{try{if(IDX&&IDX.hk&&IDX.us){const u=IDX.hk[k];if(u!=null&&IDX.us[u])return new URL(IDX.us[u],location.href).href+'img18/t_'+k+'.jpg'}}catch(e){}return ''};const TL=new Map(),PEND=new Set(),READY=[];let lastT=0,nBusy=0;
  const mats={},ST={n:0,sum:0,max:0},NVD=new Set();
  /* il terreno e l'acqua del mondo grande non si disegnano dentro la mappa di Pirri (li' c'e' gia' il suo terreno) */
  const coreHole=m=>{m.onBeforeCompile=sh=>{sh.vertexShader='varying vec3 vW82;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvW82=(modelMatrix*vec4(transformed,1.0)).xyz;');
@@ -6672,7 +6672,7 @@ const MONDO82=(()=>{
   if(m.t=='tile'){try{const [i,j]=m.key.split('_').map(Number),bk=Math.floor(i/m.bs)+'_'+Math.floor(j/m.bs);
     let pr=BC.get(bk);if(!pr){/* v137: se il secondo sito non risponde, riserva sul sito del gioco (m.u2) */const F2=u=>fetch(m.url+u).then(r=>{if(!r.ok)throw 0;return r}).catch(e=>m.u2&&m.u2!=m.url?fetch(m.u2+u):Promise.reject(e));pr=F2('b_'+bk+'.json').then(r=>r.json());BC.set(bk,pr);if(BC.size>10)BC.delete(BC.keys().next().value)}
     const d=Object.assign({},(await pr)[m.key]);d.key=m.key;d.core=m.core;
-    let img=null;/* v137: foto del quadrato in un file .jpg a parte (mondo/img/t_I_J.jpg) */if(d.im){try{const r=await fetch(m.url+'img/t_'+m.key+'.jpg').then(r=>r.ok||!m.u2||m.u2==m.url?r:fetch(m.u2+'img/t_'+m.key+'.jpg'),()=>m.u2?fetch(m.u2+'img/t_'+m.key+'.jpg'):null);if(r.ok)img=await createImageBitmap(await r.blob())}catch(er){}}if(d.img){try{const bs=atob(d.img),u8=new Uint8Array(bs.length);for(let q=0;q<bs.length;q++)u8[q]=bs.charCodeAt(q);img=await createImageBitmap(new Blob([u8],{type:'image/jpeg'}))}catch(er){}}delete d.img;
+    let img=null;/* v137: foto del quadrato in un file .jpg a parte (mondo/img/t_I_J.jpg) */if(m.h18){try{const r=await fetch(m.h18);if(r.ok)img=await createImageBitmap(await r.blob())}catch(er){}}if(d.im&&!img){try{const r=await fetch(m.url+'img/t_'+m.key+'.jpg').then(r=>r.ok||!m.u2||m.u2==m.url?r:fetch(m.u2+'img/t_'+m.key+'.jpg'),()=>m.u2?fetch(m.u2+'img/t_'+m.key+'.jpg'):null);if(r.ok)img=await createImageBitmap(await r.blob())}catch(er){}}if(d.img){try{const bs=atob(d.img),u8=new Uint8Array(bs.length);for(let q=0;q<bs.length;q++)u8[q]=bs.charCodeAt(q);img=await createImageBitmap(new Blob([u8],{type:'image/jpeg'}))}catch(er){}}delete d.img;
     const o=build(d,m.lod);o.img=img;o.data=d;const tf=[];for(const k of['ground','water','road','walls','roofs'])if(o[k])for(const a of Object.values(o[k]))tf.push(a.buffer);tf.push(o.boxes.buffer,o.trees.buffer,o.win.buffer,o.bal.buffer,o.bush.buffer,o.sig.buffer);if(img)tf.push(img);
     postMessage(o,tf)}catch(er){postMessage({key:m.key,err:String(er)})}}
   if(m.t=='lod'){try{const o=build(Object.assign({},m.d,{g:0}),m.lod);const tf=[];for(const k of['road','walls','roofs'])for(const a of Object.values(o[k]))tf.push(a.buffer);tf.push(o.boxes.buffer,o.trees.buffer,o.win.buffer,o.bal.buffer,o.bush.buffer,o.sig.buffer);delete o.ground;delete o.water;o.relod=1;postMessage(o,tf)}catch(er){postMessage({key:m.key,err:String(er)})}}};`;
@@ -6735,7 +6735,7 @@ const MONDO82=(()=>{
   want.sort((a,b)=>a[0]-b[0]);const W=new Map(want.map(w=>[w[1],w[0]]));
   for(const [k,t] of TL){const d=W.get(k);if(d===undefined){const [i,j]=k.split('_').map(Number),dx=Math.max(0,Math.abs(px-(i+.5)*T)-T/2),dz=Math.max(0,Math.abs(pz-(j+.5)*T)-T/2);if(Math.hypot(dx,dz)>RLOAD+350)unload(k)}}
   for(const [d,k] of want){if(nBusy>=1)break;const lod=d<RNEAR&&!fast?1:0;let t=TL.get(k);
-   if(!t){t={state:1,lod};TL.set(k,t);nBusy++;wk.postMessage({t:'tile',key:k,url:URL137(k),u2:base,lod,core:IDX.core,bs:IDX.bs||2});continue}
+   if(!t){t={state:1,lod};TL.set(k,t);nBusy++;wk.postMessage({t:'tile',key:k,url:URL137(k),u2:base,h18:H140(k),lod,core:IDX.core,bs:IDX.bs||2});continue}
    if(!fast&&t.state==2&&t.lod!=lod&&t.data&&(lod==1||d>RNEAR+250)){t.state=1;nBusy++;wk.postMessage({t:'lod',d:t.data,lod})}}}
  return{get idx(){return IDX},get mode(){return MODE},ST,h,inB,init,tick,get n(){return TL.size},get busy(){return nBusy},get ok(){return !!IDX},TL}})();
 
@@ -7213,13 +7213,13 @@ function collide(c){let imp=0;const fx=Math.cos(c.yaw),fz=-Math.sin(c.yaw),bk96=
    if(d<R96){if(d<1e-4){dx=px-(b.x0+b.x1)/2;dz=pz-(b.z0+b.z1)/2;d=Math.hypot(dx,dz)||1}
     const nx=dx/d,nz=dz/d;c.x+=nx*(R96-d);c.z+=nz*(R96-d);const vn=c.vx*nx+c.vz*nz;if(vn<0){c.vx-=1.3*vn*nx;c.vz-=1.3*vn*nz;imp=Math.max(imp,-vn)}}}}
  if(c.x<MB82[0]||c.x>MB82[1]){c.x=cl(c.x,MB82[0],MB82[1]);c.vx*=-.3}if(c.z<MB82[2]||c.z>MB82[3]){c.z=cl(c.z,MB82[2],MB82[3]);c.vz*=-.3}return imp}
-function SZ105(k){return k=='sport'?[2.39,1.0]:k=='panda'?[1.69,.75]:(k=='bike'||k=='vespa'||k=='bici')?[.9,.32]:null}
+function SZ105(k){if(k=='sport')return[2.39,1.0];if(k=='panda')return[1.69,.75];if(k=='bike'||k=='vespa'||k=='bici')return[.9,.32];if(k=='jet')return[.35,.35];try{if(k=='heli')me.m.userData.hmax141=2.2;const r=window.ING141&&ING141.of(me.m);if(r)return r}catch(e){}return k=='tank'?[4.6,1.8]:k=='heli'?[6,1.4]:[2.3,1]}
 function OB105(p,o,a,b){/* due rettangoli orientati: p (mezze misure a) e o (mezze misure b); restituisce [nx,nz,penetrazione] o null */
  const y1=p.yaw||0,y2=o.yaw||0,A=[[Math.cos(y1),-Math.sin(y1)],[Math.sin(y1),Math.cos(y1)],[Math.cos(y2),-Math.sin(y2)],[Math.sin(y2),Math.cos(y2)]],dx=p.x-o.x,dz=p.z-o.z;let best=null;
  for(const v of A){const ra=a[0]*Math.abs(A[0][0]*v[0]+A[0][1]*v[1])+a[1]*Math.abs(A[1][0]*v[0]+A[1][1]*v[1]),rb=b[0]*Math.abs(A[2][0]*v[0]+A[2][1]*v[1])+b[1]*Math.abs(A[3][0]*v[0]+A[3][1]*v[1]),d=dx*v[0]+dz*v[1],ov=ra+rb-Math.abs(d);
   if(ov<=0)return null;if(!best||ov<best[2]){const s=d<0?-1:1;best=[v[0]*s,v[1]*s,ov]}}return best}
 function B96(dx,dz,o){const y=o.yaw||0,fx=Math.cos(y),fz=-Math.sin(y),lo=dx*fx+dz*fz,la=-dx*fz+dz*fx,hl=2.55,hw=1.3;if(Math.abs(lo)>=hl||Math.abs(la)>=hw)return null;const pl=hl-Math.abs(lo),pw=hw-Math.abs(la);if(pw<pl){const s=la<0?-1:1;return[-fz*s,fx*s,pw]}const s=lo<0?-1:1;return[fx*s,fz*s,pl]}
-function bump(p,o){if((p.y||0)-H(p.x,p.z)>4||Math.abs((p.y||0)-(o.y||0))>4)return 0;const dx=p.x-o.x,dz=p.z-o.z,d=Math.hypot(dx,dz)||1;const sz105=p===me&&!foot?SZ105(me.kind):null;const r96=sz105?OB105(p,o,sz105,[o.hl||2.05,o.hw||.88]):(d<3.4?[dx/d,dz/d,3.4-d]:null);if(!r96)return 0;const [nx,nz,ov]=r96,dy=o.vx!==undefined;
+function bump(p,o){if((p.y||0)-H(p.x,p.z)>4||Math.abs((p.y||0)-(o.y||0))>4)return 0;const dx=p.x-o.x,dz=p.z-o.z,d=Math.hypot(dx,dz)||1;const sz105=p===me&&!foot?SZ105(me.kind):null;const o141=o.hl?null:(o.m&&window.ING141?ING141.of(o.m):null);const r96=sz105?OB105(p,o,sz105,[o.hl||(o141?o141[0]:2.05),o.hw||(o141?o141[1]:.88)]):(d<3.4?[dx/d,dz/d,3.4-d]:null);if(!r96)return 0;const [nx,nz,ov]=r96,dy=o.vx!==undefined;
  p.x+=nx*ov*.6;p.z+=nz*ov*.6;if(dy){o.x-=nx*ov*.4;o.z-=nz*ov*.4}
  const rv=(p.vx-(o.vx||0))*nx+(p.vz-(o.vz||0))*nz;if(rv<0){p.vx-=.65*rv*nx;p.vz-=.65*rv*nz;if(dy){o.vx+=.55*rv*nx;o.vz+=.55*rv*nz}else o.s*=.3;return -rv}return 0}
 const ST59={x:2552.2,z:1692.0,yaw:Math.atan2(-.754,-.657)};const me=mkS(ST59.x,ST59.z,ST59.yaw,0xdff20a,0,9);me.y=H00(ST59.x,ST59.z);me.top=112;me.ac=60;me.dr=.004;me.sg=70;me.lf=1;
@@ -7424,7 +7424,7 @@ function compass(){const dg=180/Math.PI,b=((Math.PI/2-tg.yaw)*dg%360+360)%360,w=
  c.font='700 18px system-ui';c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.fillText(Math.round(b)+'°',w/2,57)}
 /* ===== v55: minimappa "navigatore" disegnata a linee (nitida a ogni zoom) + percorso lungo le strade ===== */
 const NAV55=(()=>{
- const CS=150,S=124,RC=S/2,ZR=[80,125,190,300,480,800,1400,2500];let zi=1;try{const v=+localStorage.getItem('pc3d_mz');if(v>=0&&v<ZR.length&&localStorage.getItem('pc3d_mz')!==null)zi=v}catch(e){}
+ const CS=150,S=124,RC=S/2,ZR=[80,125,190,300,480,800,1400,2500,5000,12000,30000,80000,170000];let zi=1;try{const v=+localStorage.getItem('pc3d_mz');if(v>=0&&v<ZR.length&&localStorage.getItem('pc3d_mz')!==null)zi=v}catch(e){}
  let idx=null,stamp=0;window.NAV55R=()=>{idx=null};
  const key=(i,j)=>(i+64)*4096+(j+64);window.NAVB82=window.NAVB82||[];
  function build(){idx=new Map();const put=(x0,z0,x1,z1,o)=>{for(let i=Math.floor(x0/CS);i<=Math.floor(x1/CS);i++)for(let j=Math.floor(z0/CS);j<=Math.floor(z1/CS);j++){const k=key(i+8,j+8);let a=idx.get(k);if(!a)idx.set(k,a=[]);a.push(o)}};
@@ -7474,7 +7474,7 @@ const NAV55=(()=>{
  function draw(mm){const cv=mm.canvas;if(cv.width!=S*3){cv.width=S*3;cv.height=S*3}mm.setTransform(3,0,0,3,0,0);mm.clearRect(0,0,S,S);const T=upd(0),R=ZR[zi]*(1+Math.min(1,Math.hypot(me.vx||0,me.vz||0)/45)*.35),s=(RC-1)/R,rot=tg.yaw-Math.PI/2;
   mm.save();mm.translate(RC,RC);mm.beginPath();mm.arc(0,0,RC-1,0,6.3);mm.clip();mm.fillStyle='#22331f';mm.fillRect(-RC,-RC,S,S);mm.rotate(rot);mm.scale(s,s);mm.translate(-tg.x,-tg.z);mm.lineCap='round';mm.lineJoin='round';
   mm.fillStyle='#1a212c';mm.fillRect(MB82[0],MB82[2],MB82[1]-MB82[0],MB82[3]-MB82[2]);const SATON=typeof SAT136!=='undefined'&&SAT136.under((im,sx,sy,sw,sh,x0,z0,x1,z1)=>mm.drawImage(im,sx,sy,sw,sh,x0,z0,x1-x0,z1-z0),tg.x-R,tg.z-R,tg.x+R,tg.z+R,s);
-  const ways=[],bl=[],pg=[];near(tg.x,tg.z,R,o=>{o.k==0?ways.push(o):o.k==1?bl.push(o):pg.push(o)});
+  const ways=[],bl=[],pg=[];if(R<4200)near(tg.x,tg.z,R,o=>{o.k==0?ways.push(o):o.k==1?bl.push(o):pg.push(o)});
   const path=p=>{mm.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)mm.lineTo(p[i],p[i+1])};
   if(!SATON)for(let t=0;t<7;t++){let any=0;mm.beginPath();for(const o of pg)if(o.t==t){path(o.p);mm.closePath();any=1}if(any){mm.fillStyle=PC[t];mm.fill()}}
   if(SATON)mm.globalAlpha=.85;if(s>.3&&!SATON){mm.beginPath();for(const o of bl){path(o.p);mm.closePath()}mm.fillStyle='#3a4658';mm.fill();if(s>.55){mm.strokeStyle='#55637a';mm.lineWidth=.5/s;mm.stroke()}}
@@ -7526,7 +7526,7 @@ const NAV55=(()=>{
    for(const p of pts){for(const r of RC2)if(Math.abs(r[0]-p[0])<(r[2]+bx)/2+3&&Math.abs(r[1]-p[1])<(r[3]+by)/2+3){bad=1;break}if(bad)break}if(bad)continue;for(const p of pts)RC2.push([p[0],p[1],bx,by]);pl.push([sx,sy,e[0]]);n++;
    c.save();c.translate(sx,sy);c.rotate(a);c.lineWidth=Math.max(3,fs*.26);c.strokeStyle='rgba(0,0,0,.82)';c.strokeText(nm,0,0);c.fillStyle='#fff';c.fillText(nm,0,0);c.restore()}}
  /* da vicino la mappa grande si ridisegna a linee (strade, isolati, verde): resta nitida a qualsiasi ingrandimento */
- function vec(c,X,Z,sc,d,W,H){const lo=sc<.55*d;const x0=(0-X(0))/sc,z0=(0-Z(0))/sc,cx=x0+W/sc/2,cz=z0+H/sc/2,R=Math.hypot(W,H)/sc/2+20,ways=[],bl=[],pg=[];near(cx,cz,R,o=>{o.k==0?ways.push(o):o.k==1?bl.push(o):pg.push(o)});
+ function vec(c,X,Z,sc,d,W,H){const lo=sc<.55*d;const x0=(0-X(0))/sc,z0=(0-Z(0))/sc,cx=x0+W/sc/2,cz=z0+H/sc/2,R=Math.hypot(W,H)/sc/2+20,ways=[],bl=[],pg=[];if(R<45000)near(cx,cz,R,o=>{o.k==0?ways.push(o):o.k==1?bl.push(o):pg.push(o)});
   const path=p=>{c.moveTo(X(p[0]),Z(p[1]));for(let i=2;i<p.length;i+=2)c.lineTo(X(p[i]),Z(p[i+1]))};c.save();c.lineCap='round';c.lineJoin='round';c.setLineDash([]);
   c.fillStyle='#1a212c';c.fillRect(0,0,W,H);const SATON=typeof SAT136!=='undefined'&&SAT136.under((im,sx,sy,sw,sh,a0,b0,a1,b1)=>c.drawImage(im,sx,sy,sw,sh,X(a0),Z(b0),(a1-a0)*sc,(b1-b0)*sc),cx-R,cz-R,cx+R,cz+R,sc/d);
   if(!SATON)for(let t=0;t<7;t++){let any=0;c.beginPath();for(const o of pg)if(o.t==t){path(o.p);c.closePath();any=1}if(any){c.fillStyle=PC[t];c.fill()}}
@@ -7587,7 +7587,7 @@ const bakeMap=sfe(bakeMapRaw,'mappa');
 const wbc=new THREE.Mesh(new THREE.CylinderGeometry(3,3,90,20,1,true),new THREE.MeshBasicMaterial({color:0xff4fd8,transparent:true,opacity:.35,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));wbc.visible=false;scene.add(wbc);
 const fmc=$('fmc'),fcx=fmc.getContext('2d');let mapOpen=0,FM={d:1,base:1,sc:1,ox:0,oy:0},fmV={k:1,x:WX/2,y:WZ/2};
 function fmInfo(){$('fmi').textContent=wpt?'Segnaposto a '+Math.round(Math.hypot(wpt.x-tg.x,wpt.z-tg.z))+' m · tocca per spostarlo':'Tocca per un segnaposto · pizzica per ingrandire · gira con due dita';$('fmw').style.opacity=wpt?1:.45}
-function fmClamp(){fmV.k=cl(fmV.k,.1,40);const B=MB82||[-M,WX+M,-M,WZ+M];fmV.x=cl(fmV.x,B[0],B[1]);fmV.y=cl(fmV.y,B[2],B[3])}
+function fmClamp(){fmV.k=cl(fmV.k,window.SARD141?.02:.1,40);const B=window.SARD141||MB82||[-M,WX+M,-M,WZ+M];fmV.x=cl(fmV.x,B[0],B[1]);fmV.y=cl(fmV.y,B[2],B[3])}
 function fmInv(px,py){const r=-(fmV.r||0),cx=fmc.width/2,cy=fmc.height/2,dx=px-cx,dy=py-cy;return[cx+dx*Math.cos(r)-dy*Math.sin(r),cy+dx*Math.sin(r)+dy*Math.cos(r)]}
 function fmView(){const s=FM.base*fmV.k;FM.sc=s;FM.ox=fmc.width/2-fmV.x*s;FM.oy=fmc.height/2-fmV.y*s}
 function fmLayout(){const d=Math.min(2,devicePixelRatio||1),w=fmc.clientWidth,h=fmc.clientHeight;fmc.width=Math.max(1,w*d|0);fmc.height=Math.max(1,h*d|0);FM.d=d;FM.base=Math.min(fmc.width/(WX+2*M),fmc.height/(WZ+2*M));fmClamp();fmView()}
@@ -8255,8 +8255,9 @@ function CABIN105(w){w.updateMatrixWorld(true);const bb=new THREE.Box3().setFrom
  g.position.set(c.x-sz.x*.03,bb.min.y+sz.y*.42,c.z);g.name='cabina105';w.add(g);return g}
 /* v107: copia leggera di un modello (un solo pezzo con i colori nei vertici): i vertici vicini (cella = lato/cel) si fondono,
    il colore di ogni vertice e' quello della sua immagine (o del materiale) in quel punto. Serve per le cose lontane. */
-const LOD107=(()=>{const CV=new Map();
- function pix(tex){if(!tex||!tex.image)return null;if(CV.has(tex.uuid))return CV.get(tex.uuid);let r=null;try{const im=tex.image,c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');x.drawImage(im,0,0,128,128);r=x.getImageData(0,0,128,128).data}catch(e){r=null}CV.set(tex.uuid,r);return r}
+const LOD107=(()=>{const CV=new Map(),IV=new WeakMap();let PC=null,PX=null;
+ /* v141: la lettura dei pixel bloccava il gioco (profilo: 27 s su 20 s a Pirri): ora una volta per IMMAGINE (le copie dei modelli hanno texture con id diversi ma la stessa immagine) e su una tela in memoria normale (willReadFrequently: niente lettura dalla scheda grafica) */
+ function pix(tex){if(!tex||!tex.image)return null;const im=tex.image;if(CV.has(tex.uuid))return CV.get(tex.uuid);if(IV.has(im)){const q=IV.get(im);CV.set(tex.uuid,q);return q}let r=null;try{if(!PC)PC=document.createElement('canvas'),PC.width=PC.height=128,PX=PC.getContext('2d',{willReadFrequently:true});PX.clearRect(0,0,128,128);PX.drawImage(im,0,0,128,128);r=PX.getImageData(0,0,128,128).data}catch(e){r=null}CV.set(tex.uuid,r);try{IV.set(im,r)}catch(e){}return r}
  function make(root,cel){root.updateMatrixWorld(true);const Mi=new THREE.Matrix4().copy(root.matrixWorld).invert(),V=new THREE.Vector3(),C=new THREE.Color();
   const P=[],K=[];root.traverse(m=>{if(!m.isMesh||!m.visible||m.isSkinnedMesh)return;const g=m.geometry,pa=g.attributes.position,uv=g.attributes.uv,I=g.index,mats=Array.isArray(m.material)?m.material:[m.material];
    const M=new THREE.Matrix4().multiplyMatrices(Mi,m.matrixWorld),n=I?I.count:pa.count;const grp=(g.groups&&g.groups.length)?g.groups:[{start:0,count:n,materialIndex:0}];
@@ -10504,7 +10505,8 @@ const ARR125D={"b": [3375.5, 1669.6, 3350.5, 1379.7, 3386.6, 1659.5, 3335.7, 179
 const ARR125=(()=>{
  const M={lamp:{f:'lampione',h:8.5},bench:{f:'panchina',l:1.8},bin:{f:'cestino',h:1.0},rec:{f:'bidoni',h:1.1}},Z=new THREE.Matrix4().makeScale(0,0,0);
  let WL=null;const IM={},CAP={lamp:260,bench:70,bin:40,rec:14};let loaded=0,lastL=-1,ok=false,lastX=1e9,lastZ=1e9,tk=0;
- const gy=(x,z)=>{try{/* v131: fuori dalla mappa di Pirri la quota e' quella del mondo grande */if(x<0||z<0||x>WX||z>WZ)return H(x,z);return typeof Hn==='function'?Hn(x,z):H00(x,z)}catch(e){return 0}};
+ const gy0=(x,z)=>{try{/* v131: fuori dalla mappa di Pirri la quota e' quella del mondo grande */if(x<0||z<0||x>WX||z>WZ)return H(x,z);return typeof Hn==='function'?Hn(x,z):H00(x,z)}catch(e){return 0}};
+ /* v141: niente oggetti mezzi sotto il marciapiede o il pendio: la quota e' la piu' alta sotto la base (cerchio di 70 cm) */const gy=(x,z)=>Math.max(gy0(x,z),gy0(x+.7,z),gy0(x-.7,z),gy0(x,z+.7),gy0(x,z-.7));
  /* modello -> geometrie fuse per materiale, misurate: base a y=0, palo/centro in 0,0, braccio verso +x */
  function prep(g,k){const R=g.scene;R.updateMatrixWorld(true);const parts=new Map();let V=[];
   R.traverse(o=>{if(!o.isMesh)return;const ge=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();ge.applyMatrix4(o.matrixWorld);
@@ -10665,7 +10667,8 @@ const V131D={"f": [3657.0, 1736.7, 3715.0, 1281.8, 2762.8, 1535.2, 787.1, 2151.5
    Distributori (amenity=fuel, v132): pensilina con pompe ("Gas Station USSR" CC-BY).
    Piscine (leisure=swimming_pool): acqua azzurra che riflette il cielo + bordo bianco, con la forma vera. Si vedono entro 400 m. */
 const V131=(()=>{const D=V131D,IM={},CAP={fl:30,fo:16,di:8,ob:6,st:10};let loaded=0,ld=0,lx=1e9,lz=1e9,lastL=-1,tk=0,pools=null;const o=new THREE.Object3D();
- const gy=(x,z)=>{try{if(x<0||z<0||x>WX||z>WZ)return H(x,z);return typeof Hn=='function'?Hn(x,z):H(x,z)}catch(e){return 0}};
+ const gy0=(x,z)=>{try{if(x<0||z<0||x>WX||z>WZ)return H(x,z);return typeof Hn=='function'?Hn(x,z):H(x,z)}catch(e){return 0}};
+ /* v141: niente oggetti mezzi sotto il marciapiede o il pendio: la quota e' la piu' alta sotto la base (cerchio di 70 cm) */const gy=(x,z)=>Math.max(gy0(x,z),gy0(x+.7,z),gy0(x-.7,z),gy0(x,z+.7),gy0(x,z-.7));
  function merge(gs){const g=new THREE.BufferGeometry();for(const [a,n] of [['position',3],['normal',3],['uv',2]]){let N=0;for(const x of gs)N+=x.attributes[a].array.length;const A=new Float32Array(N);let k=0;for(const x of gs){A.set(x.attributes[a].array,k);k+=x.attributes[a].array.length}g.setAttribute(a,new THREE.BufferAttribute(A,n))}return g}
  function prep(g,name){const R=g.scene;R.updateMatrixWorld(true);const parts=new Map(),bb=new THREE.Box3().setFromObject(R),sz=bb.getSize(new THREE.Vector3()),c=bb.getCenter(new THREE.Vector3());
   R.traverse(q=>{if(!q.isMesh)return;const ge=q.geometry.index?q.geometry.toNonIndexed():q.geometry.clone();ge.applyMatrix4(q.matrixWorld);
@@ -10720,18 +10723,60 @@ const V131=(()=>{const D=V131D,IM={},CAP={fl:30,fo:16,di:8,ob:6,st:10};let loade
 /* ===== v136: minimappa e mappa grande con le foto satellitari vere (stile navigatore) =====
    mondo/sat.jpg (tutto il mondo grande, 8 m per pixel) e mondo/sat_pirri.jpg (Pirri, 2 m per pixel): tools/sat136.py dalle foto Esri gia' scaricate.
    Da vicino si usano anche le foto dei quadrati del mondo grande gia' caricati (1 m per pixel). Sopra restano strade, nomi delle vie e segnaposti. */
-const SAT136=(()=>{let J=null,img=null,ip=null,st=0;
+const SAT136=(()=>{let J=null,img=null,ip=null,is=null,st=0;
  function load(){if(st)return;st=1;fetch(new URL('mondo/sat.json',location.href).href).then(r=>r.json()).then(j=>{J=j;const a=new Image();a.onload=()=>{img=a};a.src=new URL('mondo/sat.jpg',location.href).href;
-   const b=new Image();b.onload=()=>{ip=b};b.src=new URL('mondo/sat_pirri.jpg',location.href).href}).catch(()=>{setTimeout(()=>{st=0},60000)})}
+   const b=new Image();b.onload=()=>{ip=b};b.src=new URL('mondo/sat_pirri.jpg',location.href).href;/* v141: tutta la Sardegna (80 m per pixel) */if(j.sard){window.SARD141=[j.sard[0],j.sard[2],j.sard[1],j.sard[3]];const c=new Image();c.onload=()=>{is=c};c.src=new URL('mondo/sat_sard.jpg',location.href).href}}).catch(()=>{setTimeout(()=>{st=0},60000)})}
  /* disegna solo il pezzo di immagine che si vede: f(img,sx,sy,sw,sh,x0,z0,x1,z1) con x/z in metri del gioco */
  function part(f,im,b,vx0,vz0,vx1,vz1){const x0=Math.max(b[0],vx0),z0=Math.max(b[1],vz0),x1=Math.min(b[2],vx1),z1=Math.min(b[3],vz1);if(x1<=x0||z1<=z0)return;
   const kx=im.width/(b[2]-b[0]),kz=im.height/(b[3]-b[1]);f(im,(x0-b[0])*kx,(z0-b[1])*kz,(x1-x0)*kx,(z1-z0)*kz,x0,z0,x1,z1)}
- function under(f,vx0,vz0,vx1,vz1,ppm){load();if(!img||!J)return false;part(f,img,J.mondo,vx0,vz0,vx1,vz1);if(ip&&ppm>.07)part(f,ip,J.pirri,vx0,vz0,vx1,vz1);
+ function under(f,vx0,vz0,vx1,vz1,ppm){load();if(!img||!J)return false;if(is&&J.sard)part(f,is,J.sard,vx0,vz0,vx1,vz1);part(f,img,J.mondo,vx0,vz0,vx1,vz1);if(ip&&ppm>.07)part(f,ip,J.pirri,vx0,vz0,vx1,vz1);
   /* da vicino: le foto a 1 m per pixel dei quadrati gia' caricati */
   if(ppm>.22)try{for(const [k,t] of MONDO82.TL){const g=t.ground,o=t.data&&t.data.o;if(!g||!o||!g.material||!g.material.map||!g.material.map.image)continue;const m=g.material.map.image;if(!m.width)continue;part(f,m,[o[0],o[1],o[0]+500,o[1]+500],vx0,vz0,vx1,vz1)}}catch(e){}
   return true}
  /* caricate poco dopo l'avvio, cosi' la mappa e' pronta quando la apri */setTimeout(load,8000);
  return{under,load,get ok(){return!!img}}})();
+
+/* ===== v141: ingombro vero di tutti i mezzi guidabili (Simone 6/11: "vado a sbattere prima di toccare gli ostacoli") =====
+   Prima solo Lamborghini, Panda, moto, Vespa e bici avevano le misure vere; gli altri mezzi (auto rubate, volanti, autobus, ambulanze, carro, elicottero,
+   moto d'acqua, motoscafo) usavano cerchi fissi: contro gli altri mezzi un cerchio di 3,4 m (urto quando eri ancora a 1,5 m di distanza) e contro i muri
+   un'auto corta (un autobus entrava nei muri). Ora le mezze misure (lunghezza, larghezza) si misurano sul modello 3D che stai guidando (solo le parti
+   visibili e piene: niente fasci dei fari, vetri trasparenti, pale del rotore) e si rimisurano quando il modello cambia (i modelli veri arrivano dopo).
+   Anche le auto del traffico e le volanti usano le misure del loro modello. */
+window.ING141=(()=>{const C=new WeakMap(),v=new THREE.Vector3(),M=new THREE.Matrix4(),inv=new THREE.Matrix4();
+ const skip=o=>{if(/rotor|beam|fascio|glow|alone|ombra|shadow/i.test(o.name||''))return 1;const ms=Array.isArray(o.material)?o.material:[o.material];
+  return ms.every(m=>!m||m.blending===THREE.AdditiveBlending||(m.transparent&&m.opacity<.85)||m.depthWrite===false&&m.transparent)};
+ function meas(m){m.updateMatrixWorld(true);inv.copy(m.matrixWorld).invert();let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9,n=0;
+  m.traverseVisible(o=>{if(!o.isMesh||!o.geometry||o.isInstancedMesh||skip(o))return;const p=o.geometry.attributes.position;if(!p)return;M.multiplyMatrices(inv,o.matrixWorld);
+   const st=Math.max(1,Math.floor(p.count/3000));for(let i=0;i<p.count;i+=st){v.fromBufferAttribute(p,i).applyMatrix4(M);if(v.y<-.6||v.y>(m.userData.hmax141||5))continue;if(v.x<x0)x0=v.x;if(v.x>x1)x1=v.x;if(v.z<z0)z0=v.z;if(v.z>z1)z1=v.z;n++}});
+  if(n<8||x1-x0<.4||z1-z0<.2)return null;
+  /* il centro del mezzo e' l'origine: si prende il lato piu' lontano (cosi' nessuna parte resta fuori), ma senza superare di 25 cm la mezza misura vera */
+  const hl=Math.min(Math.max(-x0,x1),(x1-x0)/2+.25),hw=Math.min(Math.max(-z0,z1),(z1-z0)/2+.25);return[hl,hw]}
+ /* misura in cache: si rifa' se cambia il numero di pezzi del modello (modello vero arrivato, pilota aggiunto...) */
+ function of(m){if(!m)return null;let c=C.get(m);const now=performance.now();if(c&&now-c.t<1500)return c.v;let k=0;m.traverseVisible(o=>{if(o.isMesh)k++});
+  if(c&&c.k===k){c.t=now;return c.v}const r=meas(m);C.set(m,{v:r,k,t:now});return r}
+ /* punto piu' basso (nel mondo) delle parti visibili e piene di un oggetto: per le prove "niente sotto l'asfalto" */
+ function low(m,f){m.updateMatrixWorld(true);let y0=1e9,px=0,pz=0;m.traverseVisible(o=>{if(!o.isMesh||!o.geometry||o.isInstancedMesh||skip(o))return;const p=o.geometry.attributes.position;if(!p)return;
+   const st=Math.max(1,Math.floor(p.count/3000));for(let i=0;i<p.count;i+=st){v.fromBufferAttribute(p,i).applyMatrix4(o.matrixWorld);const d=f?v.y-f(v.x,v.z):v.y;if(d<y0){y0=d;px=v.x;pz=v.z}}});return[y0,px,pz]}
+ /* ----- v141: niente auto sotto l'asfalto (Simone 6/11). Le auto erano messe alla quota del terreno nel centro e restavano dritte:
+    in salita, sui cordoli dei marciapiedi (+25 cm) e sulle strade inclinate di traverso le ruote finivano sotto. Ora ogni auto vicina si appoggia
+    sulle 4 ruote: inclinazione avanti/indietro e di lato presa dal terreno sotto le ruote, e alzata quanto serve perche' nessuna ruota resti sotto. ----- */
+ function seat(m,ax){if(!m||!m.visible||!m.parent)return;const r=of(m);if(!r)return;const x=m.position.x,z=m.position.z,yw=m.rotation.y,c=Math.cos(yw),s=Math.sin(yw),a=r[0]*.82,b=r[1]*.85;
+  const h=(u,w)=>H(x+c*u+s*w,z-s*u+c*w),fp=h(a,b),fm=h(a,-b),bp=h(-a,b),bm=h(-a,-b),hc=H(x,z);
+  const pitch=Math.max(-.3,Math.min(.3,Math.atan2((fp+fm-bp-bm)/2,2*a))),roll=Math.max(-.3,Math.min(.3,-Math.atan2((fp+bp-fm-bm)/2,2*b)));
+  const mean=(fp+fm+bp+bm)/4,tw=Math.abs(fp+bm-fm-bp)/4,tgt=Math.max(mean+tw,hc);
+  if(m.position.y!==m.userData.y141)m.userData.b141=m.position.y-(ax?0:0);const base=m.userData.b141;
+  /* la quota messa dal modulo e' relativa al terreno nel centro: si sposta della differenza */
+  const ny=base+(tgt-hc);m.position.y=ny;m.userData.y141=ny;m.rotation.order='YXZ';m.rotation.z=pitch;m.rotation.x=roll;m.updateMatrixWorld(true)}
+ let last=0,hooked=0;
+ /* si fa subito prima di disegnare (dopo che traffico e moduli hanno messo le auto), una volta per fotogramma */
+ function hook(){if(hooked||typeof scene==='undefined')return;hooked=1;const prev=scene.onBeforeRender;scene.onBeforeRender=function(){try{prev&&prev.apply(this,arguments)}catch(e){}const t=performance.now();if(t-last<5)return;last=t;run()}}
+ function tick(){hook()}
+ function run(){const cx=cam.position.x,cz=cam.position.z,N=(o)=>o&&Math.abs(o.position.x-cx)<220&&Math.abs(o.position.z-cz)<220;
+  const L=[];try{for(const t of traf)if(t.m&&N(t.m)&&!t.dead)L.push(t.m)}catch(e){}try{for(const c of cops)if(c.m&&N(c.m))L.push(c.m)}catch(e){}
+  try{for(const c of MV102.CARS)if(c.m&&N(c.m))L.push(c.m)}catch(e){}try{for(const m of MV102.PK)if(N(m))L.push(m)}catch(e){}
+  try{for(const s of PARK88.SL)if(s.r&&s.w&&N(s.w))L.push(s.w)}catch(e){}try{for(const u of SOC90.U)if(u.m&&!u.dead&&N(u.m))L.push(u.m)}catch(e){}
+  for(const m of L){if(m===me.m)continue;try{seat(m)}catch(e){}}}
+ return{of,meas,low,seat,tick}})();
 
 /* (unito dalla versione pubblicata da un'altra chat il 2/11 sulla pagina di claude.ai) */
 /* ===== v137: effetti del cielo e della pioggia =====
@@ -10876,7 +10921,7 @@ window.FX137={on:()=>ON,st,strike,rain:v=>{window.W113=v},rb:()=>{rbT=130}};
    A OGNI VERSIONE: alzare V e AGGIUNGERE voci in L con v = numero di versione (non cancellare le vecchie).
    x,z = dove ti mette; lx,lz = verso dove guardi; p:1 = a piedi; ver:1 = da verificare. */
 const NOV115=(()=>{
- const V=140;
+ const V=141;
  const L=[
   {v:116,n:'Cortile interno (Via Fratelli Bandiera)',d:'Isolato rifatto con case separate e cortile col pavimento vero dalla foto (prato, piastrelle, terra)',x:2148,z:2127,lx:2160,lz:2110,p:1,ver:1},
   {v:116,n:'Cortile interno (Via Mons. Cogoni)',d:'Isolato rifatto con il cortile vero',x:1277,z:2393,lx:1290,lz:2380,p:1,ver:1},
@@ -10921,6 +10966,12 @@ const NOV115=(()=>{
   {v:139,n:'Parcheggi veri',d:'I parcheggi delle mappe in tutto il mondo grande: asfalto e strisce bianche dei posti (431 parcheggi)',x:10002,z:-3260,lx:10002,lz:-3293,p:1,ver:1},
   {v:139,n:'Autobus fuori da Pirri',d:'Autobus blu ARST sulle strade principali di tutti i paesi',noVai:1,ver:1},
   {v:139,n:'Polizia in tutta la mappa',d:'Se ti cercano fuori da Pirri le volanti ora arrivano dalle strade vicine (prima nascevano solo dentro Pirri)',noVai:1,ver:1},
+  {v:141,n:'Minimappa fino a tutta la Sardegna',d:'Con il tasto meno la minimappa e la mappa si allontanano fino a vedere tutta l’isola, sempre con le foto dal satellite (anche nelle zone nuove del sud)',noVai:1},
+  {v:141,n:'Niente alberi nel mare',d:'Tolti circa 115 mila alberi e cespugli che stavano sull’acqua',noVai:1},
+  {v:141,n:'Mezzi grandi quanto sono davvero',d:'Ogni mezzo che guidi urta con le sue misure vere (auto rubate, autobus, volanti, carro, elicottero...): niente più colpi prima di toccare',noVai:1},
+  {v:141,n:'Niente sotto l’asfalto',d:'Le auto si appoggiano sulle 4 ruote in salita e sui cordoli; panchine e arredo mai dentro il marciapiede',noVai:1},
+  {v:141,n:'Meno scatti',d:'Tolta una lettura dei colori delle auto che bloccava il gioco per un attimo ogni volta che arrivava un’auto nuova',noVai:1},
+  {v:141,n:'Foto nitide nei paesi',d:'Da vicino il terreno di tutti i paesi del mondo grande usa foto dall’alto due volte più dettagliate (tetti, strade, cortili)',x:-48250,z:-5250,lx:-48150,lz:-5250,ver:1},
   {v:140,n:'Sardegna sud: Iglesias',d:'La mappa ora arriva a Iglesias e a tutto l’Iglesiente',x:-48250,z:-5250,lx:-48150,lz:-5250,ver:1},
   {v:140,n:'Carbonia',d:'Carbonia e il Sulcis, con strade, case e foto dall’alto',x:-49750,z:10250,lx:-49650,lz:10250,ver:1},
   {v:140,n:'Sant’Antioco',d:'L’isola di Sant’Antioco, all’estremo ovest della mappa',x:-55750,z:21750,lx:-55650,lz:21750,ver:1},
@@ -10989,7 +11040,7 @@ const STEAL110=(()=>{
  return{take,vespa}})();
 
 
-GULL87.init();let lt86=0;try{BUS88.init();LUCI88.init();PIG88.init();PARK88.init();PED88.initDogs();PED88.initCats();FEN88.init();OFF88.init()}catch(e88){console.warn('v88',e88)}function loop(now){requestAnimationFrame(loop);try{const d86=Math.min(.1,Math.max(.001,(now-(lt86||now))/1000));lt86=now;HERO86.tick(now/1000,d86);HERO86.lambo();GULL87.tick(now/1000,d86)}catch(e){}{const t88=now/1000,d88=Math.min(.1,Math.max(.001,(now-(window.lt88||now))/1000));window.lt88=now;window.gt88=(window.gt88||0)+d88;for(const f of[()=>{if(!ANIM88.ok)ANIM88.init()},()=>BUS88.tick(t88,d88),()=>PED88.tick(t88,d88),()=>PIG88.tick(t88,d88),()=>PARK88.tick(t88),()=>DANNI88.tick(t88,d88),()=>LUCI88.tick(t88,d88),()=>VES88.tick(t88,d88),()=>FEN88.tick(t88,d88),()=>MEZ90.tick(t88,d88),()=>MET90.tick(t88,d88),()=>SOC90.tick(t88,d88),()=>ANI90.tick(t88,d88),()=>GOM90.tick(t88,d88),()=>LSND90.tick(),()=>STA91.tick(t88,d88),()=>POE91.tick(t88,d88),()=>TRN91.tick(t88,d88),()=>POR91.tick(t88,d88),()=>MER91.tick(t88),()=>FPS94.tick(t88),()=>MV102.tick(t88,d88),()=>LOC102.tick(),()=>VEST102.tick(),()=>ACQ103.tick(t88,d88),()=>MON103.tick(),()=>CAS103.tick(),()=>NEG104.tick(t88),()=>MARE104.tick(t88),()=>GF104.tick(t88,d88),()=>SND104.tick(t88,d88),()=>ERO107.tick(),()=>SND107.tick(),()=>POL107.tick(t88,d88),()=>SW107.tick(t88,d88),()=>WAT107.tick(t88),()=>ANF113.build(),()=>EXT113.tick(t88,d88),()=>COR115.tick(),()=>PV117.tick(t88,d88),()=>KB119.tick(),()=>URT121.tick(),()=>ENV124.tick(),()=>ARR125.tick(),()=>VER126.tick(),()=>FIN127.tick(),()=>DET129.tick(),()=>V131.tick(),()=>ALB121.tick(t88),()=>NOV115.tick(),()=>NOMI114.tick(t88),()=>SEG114.tick(),()=>PORTO108.tick()])try{f()}catch(e88){if(!window.e88n){window.e88n=1;console.warn('v88 tick',e88)}}}try{CAR83.tick(now/1000)}catch(e){}try{MONDO82.tick(now/1000);CHUNK82.tick(now/1000)}catch(e){}const dt=Math.max(.001,Math.min(.05,(now-last)/1000));last=now;if(!over&&!pz&&!inside)step(dt,now/1000);if(!pz&&!inside)gfStep(dt,now/1000);if(inside&&!pz)inStepS(dt,now/1000);venStepS(dt,now/1000);{const sg=QL.sg;sunG.visible=sg>0&&sunD.position.y>cam.position.y-20;moonG.visible=sg>0&&moonD.position.y>cam.position.y-20;if(sg>0){sunG.position.copy(sunD.position);moonG.position.copy(moonD.position);sunG.scale.setScalar(70*sg);moonG.scale.setScalar(45*sg);sunG.material.opacity=.35+.1*sg;moonG.material.opacity=.3}}if(wp>0){const hh=Math.min(5,Math.ceil(wp/2));bribeC=Math.max(100,hh*150);const tx='⭐ Paga e sparisci $'+bribeC;if(gwT!==tx){gwT=tx;$('gw').textContent=tx}if(gwD!=='block'){gwD='block';$('gw').style.display='block'}}else if(gwD!=='none'){gwD='none';$('gw').style.display='none'}
+GULL87.init();let lt86=0;try{BUS88.init();LUCI88.init();PIG88.init();PARK88.init();PED88.initDogs();PED88.initCats();FEN88.init();OFF88.init()}catch(e88){console.warn('v88',e88)}function loop(now){requestAnimationFrame(loop);try{const d86=Math.min(.1,Math.max(.001,(now-(lt86||now))/1000));lt86=now;HERO86.tick(now/1000,d86);HERO86.lambo();GULL87.tick(now/1000,d86)}catch(e){}{const t88=now/1000,d88=Math.min(.1,Math.max(.001,(now-(window.lt88||now))/1000));window.lt88=now;window.gt88=(window.gt88||0)+d88;for(const f of[()=>{if(!ANIM88.ok)ANIM88.init()},()=>BUS88.tick(t88,d88),()=>PED88.tick(t88,d88),()=>PIG88.tick(t88,d88),()=>PARK88.tick(t88),()=>DANNI88.tick(t88,d88),()=>LUCI88.tick(t88,d88),()=>VES88.tick(t88,d88),()=>FEN88.tick(t88,d88),()=>MEZ90.tick(t88,d88),()=>MET90.tick(t88,d88),()=>SOC90.tick(t88,d88),()=>ANI90.tick(t88,d88),()=>GOM90.tick(t88,d88),()=>LSND90.tick(),()=>STA91.tick(t88,d88),()=>POE91.tick(t88,d88),()=>TRN91.tick(t88,d88),()=>POR91.tick(t88,d88),()=>MER91.tick(t88),()=>FPS94.tick(t88),()=>MV102.tick(t88,d88),()=>LOC102.tick(),()=>VEST102.tick(),()=>ACQ103.tick(t88,d88),()=>MON103.tick(),()=>CAS103.tick(),()=>NEG104.tick(t88),()=>MARE104.tick(t88),()=>GF104.tick(t88,d88),()=>SND104.tick(t88,d88),()=>ERO107.tick(),()=>SND107.tick(),()=>POL107.tick(t88,d88),()=>SW107.tick(t88,d88),()=>WAT107.tick(t88),()=>ANF113.build(),()=>EXT113.tick(t88,d88),()=>COR115.tick(),()=>PV117.tick(t88,d88),()=>KB119.tick(),()=>URT121.tick(),()=>ENV124.tick(),()=>ARR125.tick(),()=>VER126.tick(),()=>FIN127.tick(),()=>DET129.tick(),()=>ING141.tick(),()=>V131.tick(),()=>ALB121.tick(t88),()=>NOV115.tick(),()=>NOMI114.tick(t88),()=>SEG114.tick(),()=>PORTO108.tick()])try{f()}catch(e88){if(!window.e88n){window.e88n=1;console.warn('v88 tick',e88)}}}try{CAR83.tick(now/1000)}catch(e){}try{MONDO82.tick(now/1000);CHUNK82.tick(now/1000)}catch(e){}const dt=Math.max(.001,Math.min(.05,(now-last)/1000));last=now;if(!over&&!pz&&!inside)step(dt,now/1000);if(!pz&&!inside)gfStep(dt,now/1000);if(inside&&!pz)inStepS(dt,now/1000);venStepS(dt,now/1000);{const sg=QL.sg;sunG.visible=sg>0&&sunD.position.y>cam.position.y-20;moonG.visible=sg>0&&moonD.position.y>cam.position.y-20;if(sg>0){sunG.position.copy(sunD.position);moonG.position.copy(moonD.position);sunG.scale.setScalar(70*sg);moonG.scale.setScalar(45*sg);sunG.material.opacity=.35+.1*sg;moonG.material.opacity=.3}}if(wp>0){const hh=Math.min(5,Math.ceil(wp/2));bribeC=Math.max(100,hh*150);const tx='⭐ Paga e sparisci $'+bribeC;if(gwT!==tx){gwT=tx;$('gw').textContent=tx}if(gwD!=='block'){gwD='block';$('gw').style.display='block'}}else if(gwD!=='none'){gwD='none';$('gw').style.display='none'}
 if(wp>0&&!over){let near=0;for(const c of cops)if(Math.hypot(c.x-tg.x,c.z-tg.z)<150){near=1;break}hideT=near?0:hideT+dt;if(hideT>10){wp=Math.max(0,wp-dt*1.5);if(!hideN){hideN=1;msg('Ti sei nascosto: le stelle stanno calando...')}}}else{hideT=0;hideN=0}
 {const e=foot?1:0;if(entS!==e){entS=e;entB.innerHTML=e?'<span>🚗</span><small>Sali</small>':'<span>⏏</span><small>Esci</small>'}}
 if(!foot)aim=0;if(!aim)aimP*=.85;{const v=foot?'':'none';if(aimB.style.display!==v)aimB.style.display=v}const nnT=Math.min(1,QR.ha.material.opacity/.7);ren.toneMappingExposure=QL.ex*(1-.14*nnT);moonL.intensity=nnT*.5;moonL.position.set(tg.x-30,60+(tg.y||0),tg.z+40);moonL.target.position.set(tg.x,tg.y||0,tg.z);fillL.intensity=nnT*1.8;fillL.position.set(tg.x,(tg.y||0)+4,tg.z);$('xh').style.display=((aim&&foot||!foot&&me.kind=='tank')&&!over&&!pz)?'block':'none';
