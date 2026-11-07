@@ -7595,11 +7595,11 @@ const bakeMap=sfe(bakeMapRaw,'mappa');
 const wbc=new THREE.Mesh(new THREE.CylinderGeometry(3,3,90,20,1,true),new THREE.MeshBasicMaterial({color:0xff4fd8,transparent:true,opacity:.35,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));wbc.visible=false;scene.add(wbc);
 const fmc=$('fmc'),fcx=fmc.getContext('2d');let mapOpen=0,FM={d:1,base:1,sc:1,ox:0,oy:0},fmV={k:1,x:WX/2,y:WZ/2};
 function fmInfo(){$('fmi').textContent=wpt?'Segnaposto a '+Math.round(Math.hypot(wpt.x-tg.x,wpt.z-tg.z))+' m · tocca per spostarlo':'Tocca per un segnaposto · pizzica per ingrandire · gira con due dita';$('fmw').style.opacity=wpt?1:.45}
-function fmClamp(){fmV.k=cl(fmV.k,window.SARD141?.02:.1,40);const B=window.SARD141||MB82||[-M,WX+M,-M,WZ+M];fmV.x=cl(fmV.x,B[0],B[1]);fmV.y=cl(fmV.y,B[2],B[3])}
+function fmClamp(){fmV.k=cl(fmV.k,window.SARD141?.012:.1,40);const B=window.SARD141||MB82||[-M,WX+M,-M,WZ+M];fmV.x=cl(fmV.x,B[0],B[1]);fmV.y=cl(fmV.y,B[2],B[3])}
 function fmInv(px,py){const r=-(fmV.r||0),cx=fmc.width/2,cy=fmc.height/2,dx=px-cx,dy=py-cy;return[cx+dx*Math.cos(r)-dy*Math.sin(r),cy+dx*Math.sin(r)+dy*Math.cos(r)]}
 function fmView(){const s=FM.base*fmV.k;FM.sc=s;FM.ox=fmc.width/2-fmV.x*s;FM.oy=fmc.height/2-fmV.y*s}
 function fmLayout(){const d=Math.min(2,devicePixelRatio||1),w=fmc.clientWidth,h=fmc.clientHeight;fmc.width=Math.max(1,w*d|0);fmc.height=Math.max(1,h*d|0);FM.d=d;FM.base=Math.min(fmc.width/(WX+2*M),fmc.height/(WZ+2*M));fmClamp();fmView()}
-function fmZoom(f,mx,my){[mx,my]=fmInv(mx,my);const wx=(mx-FM.ox)/FM.sc,wz=(my-FM.oy)/FM.sc;fmV.k=cl(fmV.k*f,1,40);fmV.x=wx-(mx-fmc.width/2)/(FM.base*fmV.k);fmV.y=wz-(my-fmc.height/2)/(FM.base*fmV.k);fmClamp();fmDraw()}
+function fmZoom(f,mx,my){[mx,my]=fmInv(mx,my);const wx=(mx-FM.ox)/FM.sc,wz=(my-FM.oy)/FM.sc;fmV.k=cl(fmV.k*f,window.SARD141?.012:.1,40);fmV.x=wx-(mx-fmc.width/2)/(FM.base*fmV.k);fmV.y=wz-(my-fmc.height/2)/(FM.base*fmV.k);fmClamp();fmDraw()}
 /* v87: mappa grande tutta con la stessa grafica (strade, isolati, verde anche fuori da Pirri), girabile con due dita come un navigatore */
 function fmDraw(){const c=fcx,d=FM.d;fmView();const sc=FM.sc,ox=FM.ox,oy=FM.oy,X=x=>ox+x*sc,Z=z=>oy+z*sc;
  c.fillStyle='#1a212c';c.fillRect(0,0,fmc.width,fmc.height);c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';const CW=fmc.width/2,CH=fmc.height/2;c.save();c.translate(CW,CH);c.rotate(fmV.r||0);c.translate(-CW,-CH);
