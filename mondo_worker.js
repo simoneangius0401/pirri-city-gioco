@@ -1,7 +1,9 @@
 
- let Q=null,QH=null;const BC=new Map();
- const hq=(x,z)=>{let u=(x-Q.x0)/Q.s,v=(z-Q.z0)/Q.s;u=u<0?0:u>Q.nx-1.001?Q.nx-1.001:u;v=v<0?0:v>Q.nz-1.001?Q.nz-1.001:v;const i=u|0,j=v|0,fu=u-i,fv=v-j,k=j*Q.nx+i;return(QH[k]*(1-fu)*(1-fv)+QH[k+1]*fu*(1-fv)+QH[k+Q.nx]*(1-fu)*fv+QH[k+Q.nx+1]*fu*fv)/10};
- const ht=(x,z)=>{let u=(x-Q.x0)/Q.s,v=(z-Q.z0)/Q.s;u=u<0?0:u>Q.nx-1.001?Q.nx-1.001:u;v=v<0?0:v>Q.nz-1.001?Q.nz-1.001:v;const i=u|0,j=v|0,fu=u-i,fv=v-j,k=j*Q.nx+i,a=QH[k]/10,b=QH[k+1]/10,c=QH[k+Q.nx]/10,d=QH[k+Q.nx+1]/10;
+ let Q=null,QH=null;const BC=new Map(),FQ=new Map();let FB=0;
+ const decQ=q=>{const b=atob(q.h),a=new Int16Array(b.length>>1);for(let i=0;i<a.length;i++)a[i]=((b.charCodeAt(2*i)|(b.charCodeAt(2*i+1)<<8))<<16)>>16;return{x0:q.x0,z0:q.z0,s:q.s,nx:q.nx,nz:q.nz,a}};
+ const gq=(x,z)=>{if(FB){const f=FQ.get(Math.floor(x/FB)+'_'+Math.floor(z/FB));if(f&&x>=f.x0&&z>=f.z0&&x<=f.x0+(f.nx-1.001)*f.s&&z<=f.z0+(f.nz-1.001)*f.s)return f}return null};
+ const hq=(x,z)=>{const F=gq(x,z),Q_=F||Q,A=F?F.a:QH;let u=(x-Q_.x0)/Q_.s,v=(z-Q_.z0)/Q_.s;u=u<0?0:u>Q_.nx-1.001?Q_.nx-1.001:u;v=v<0?0:v>Q_.nz-1.001?Q_.nz-1.001:v;const i=u|0,j=v|0,fu=u-i,fv=v-j,k=j*Q_.nx+i;return(A[k]*(1-fu)*(1-fv)+A[k+1]*fu*(1-fv)+A[k+Q_.nx]*(1-fu)*fv+A[k+Q_.nx+1]*fu*fv)/10};
+ const ht=(x,z)=>{const F=gq(x,z),Q_=F||Q,A=F?F.a:QH;let u=(x-Q_.x0)/Q_.s,v=(z-Q_.z0)/Q_.s;u=u<0?0:u>Q_.nx-1.001?Q_.nx-1.001:u;v=v<0?0:v>Q_.nz-1.001?Q_.nz-1.001:v;const i=u|0,j=v|0,fu=u-i,fv=v-j,k=j*Q_.nx+i,a=A[k]/10,b=A[k+1]/10,c=A[k+Q_.nx]/10,d=A[k+Q_.nx+1]/10;
   return fu+fv<=1?a+(b-a)*fu+(c-a)*fv:d+(c-d)*(1-fu)+(b-d)*(1-fv)};
  const hs=n=>{const v=Math.sin(n*127.1+311.7)*43758.5453;return v-Math.floor(v)};
  const PAL=[0xf2f0ea,0xf2f0ea,0xead9b0,0xead9b0,0xe6d48c,0xe6d48c,0xe3d6b8,0xd9c7a0,0xe3a9a2,0xe9b3a4,0xe9a98c,0xe3a56a,0xd9a85a,0xc8554a,0xead9b0,0xc9c5bc,0xdcd9d2,0xb9c4a2,0xecc4b4,0xf0ece2];
@@ -147,8 +149,9 @@
   if(m.t=='init'){Q=m.Q;QH=m.QH;postMessage({t:'ok'});return}
   if(m.t=='tile'){try{const [i,j]=m.key.split('_').map(Number),bk=Math.floor(i/m.bs)+'_'+Math.floor(j/m.bs);
     let pr=BC.get(bk);if(!pr){/* v137: se il secondo sito non risponde, riserva sul sito del gioco (m.u2) */const F2=u=>fetch(m.url+u).then(r=>{if(!r.ok)throw 0;return r}).catch(e=>m.u2&&m.u2!=m.url?fetch(m.u2+u):Promise.reject(e));pr=F2('b_'+bk+'.json').then(r=>r.json());BC.set(bk,pr);if(BC.size>10)BC.delete(BC.keys().next().value)}
-    const d=Object.assign({},(await pr)[m.key]);d.key=m.key;d.core=m.core;
+    const BD=await pr;if(BD._q&&!FQ.has(bk)){FQ.set(bk,decQ(BD._q));FB=BD._q.fb||2000;while(FQ.size>120)FQ.delete(FQ.keys().next().value)}
+    const d=Object.assign({},BD[m.key]);d.key=m.key;d.core=m.core;
     let img=null;/* v137: foto del quadrato in un file .jpg a parte (mondo/img/t_I_J.jpg) */if(m.h18){try{const r=await fetch(m.h18);if(r.ok)img=await createImageBitmap(await r.blob())}catch(er){}}if(d.im&&!img){try{const r=await fetch(m.url+'img/t_'+m.key+'.jpg').then(r=>r.ok||!m.u2||m.u2==m.url?r:fetch(m.u2+'img/t_'+m.key+'.jpg'),()=>m.u2?fetch(m.u2+'img/t_'+m.key+'.jpg'):null);if(r.ok)img=await createImageBitmap(await r.blob())}catch(er){}}if(d.img){try{const bs=atob(d.img),u8=new Uint8Array(bs.length);for(let q=0;q<bs.length;q++)u8[q]=bs.charCodeAt(q);img=await createImageBitmap(new Blob([u8],{type:'image/jpeg'}))}catch(er){}}delete d.img;
-    const o=build(d,m.lod);o.img=img;o.data=d;const tf=[];for(const k of['ground','water','road','walls','roofs'])if(o[k])for(const a of Object.values(o[k]))tf.push(a.buffer);tf.push(o.boxes.buffer,o.trees.buffer,o.win.buffer,o.bal.buffer,o.bush.buffer,o.sig.buffer);if(img)tf.push(img);
+    const o=build(d,m.lod);o.img=img;o.data=d;if(BD._q){o.q=BD._q;o.bk=bk}const tf=[];for(const k of['ground','water','road','walls','roofs'])if(o[k])for(const a of Object.values(o[k]))tf.push(a.buffer);tf.push(o.boxes.buffer,o.trees.buffer,o.win.buffer,o.bal.buffer,o.bush.buffer,o.sig.buffer);if(img)tf.push(img);
     postMessage(o,tf)}catch(er){postMessage({key:m.key,err:String(er)})}}
   if(m.t=='lod'){try{const o=build(Object.assign({},m.d,{g:0}),m.lod);const tf=[];for(const k of['road','walls','roofs'])for(const a of Object.values(o[k]))tf.push(a.buffer);tf.push(o.boxes.buffer,o.trees.buffer,o.win.buffer,o.bal.buffer,o.bush.buffer,o.sig.buffer);delete o.ground;delete o.water;o.relod=1;postMessage(o,tf)}catch(er){postMessage({key:m.key,err:String(er)})}}};
