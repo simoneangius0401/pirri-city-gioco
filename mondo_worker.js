@@ -24,9 +24,9 @@
    for(let j=0;j<N-1;j++)for(let i=0;i<N-1;i++){const ax0=ox+i*S,az0=oz+j*S;if(ax0>=core[0]&&ax0+S<=core[2]&&az0>=core[1]&&az0+S<=core[3])continue;const k=j*N+i;I.push(k,k+N,k+1,k+1,k+N,k+N+1)}
    out.ground={p,u,n,i:new Uint32Array(I)}}
   // --- acqua (mare, stagni, saline): superficie piana a quota 0 sulle celle bagnate ---
-  if(d.wm){const S=20,N=T/S+1,P=[],wet=(i,j)=>i>=0&&j>=0&&i<N&&j<N&&((d.wm[j]>>i)&1);
-   for(let j=0;j<N-1;j++)for(let i=0;i<N-1;i++){if(!(wet(i,j)||wet(i+1,j)||wet(i,j+1)||wet(i+1,j+1)))continue;const x0=ox+i*S,z0=oz+j*S;if(x0>=core[0]&&x0+S<=core[2]&&z0>=core[1]&&z0+S<=core[3])continue;P.push(x0,0,z0,x0,0,z0+S,x0+S,0,z0,x0+S,0,z0,x0,0,z0+S,x0+S,0,z0+S)}
-   if(P.length){const p=new Float32Array(P),n=new Float32Array(P.length);for(let q=1;q<n.length;q+=3)n[q]=1;out.water={p,n,u:new Float32Array(P.length/3*2),c:new Float32Array(0)}}}
+  if(d.wm){const S=20,N=T/S+1,P=[],wet=(i,j)=>i>=0&&j>=0&&i<N&&j<N&&((d.wm[j]>>i)&1);const U=[],wt=(i,j)=>i<0||j<0||i>=N||j>=N||((d.wm[j]>>i)&1),sh=(i,j)=>{/* v143: riva per la schiuma (1 = punto asciutto, poi 0,6 / 0,25 a 1-2 celle) */if(!wt(i,j))return 1;let m=0;for(let r=1;r<=2&&!m;r++)for(let b=-r;b<=r;b++)for(let a=-r;a<=r;a++)if(!wt(i+a,j+b)){m=r==1?.6:.25}return m};
+   for(let j=0;j<N-1;j++)for(let i=0;i<N-1;i++){if(!(wet(i,j)||wet(i+1,j)||wet(i,j+1)||wet(i+1,j+1)))continue;const x0=ox+i*S,z0=oz+j*S;if(x0>=core[0]&&x0+S<=core[2]&&z0>=core[1]&&z0+S<=core[3])continue;P.push(x0,0,z0,x0,0,z0+S,x0+S,0,z0,x0+S,0,z0,x0,0,z0+S,x0+S,0,z0+S);for(const[a,b]of[[i,j],[i,j+1],[i+1,j],[i+1,j],[i,j+1],[i+1,j+1]])U.push(sh(a,b),7)}
+   if(P.length){const p=new Float32Array(P),n=new Float32Array(P.length);for(let q=1;q<n.length;q+=3)n[q]=1;out.water={p,n,u:new Float32Array(U),c:new Float32Array(0)}}}
   // --- strade: nastri che seguono il terreno, strisce di mezzeria e marciapiedi ---
   const R=new B(),SEG=new Map(),sk=(x,z)=>Math.floor(x/12)+','+Math.floor(z/12);
   const COL={0:0x45474b,1:0x45474b,2:0x3e4044,3:0x3e4044,4:0x404246,5:0x404246,6:0x46484b,7:0x48494c,9:0x55565a,10:0xb4ada0,11:0x9a5a4a,12:0x9a8868,13:0xbdb5a5,14:0xa9a397,15:0x9f9070,20:0x6d655b};
@@ -97,7 +97,27 @@
    for(let i=0;i<n;i++){const j=(i+1)%n,L=Math.hypot(P[2*j]-P[2*i],P[2*j+1]-P[2*i+1]);if(L<.05)continue;const nx=(P[2*j+1]-P[2*i+1])/L,nz=-(P[2*j]-P[2*i])/L;
     const pts=[[P[2*i],P[2*i+1],D[i]]];if((D[i]-d0)*(D[j]-d0)<0){const t=(D[i]-d0)/(D[i]-D[j]);pts.push([P[2*i]+(P[2*j]-P[2*i])*t,P[2*i+1]+(P[2*j+1]-P[2*i+1])*t,d0])}pts.push([P[2*j],P[2*j+1],D[j]]);
     for(let k=0;k+1<pts.length;k++){const A=pts[k],B=pts[k+1],h0=hy(A[2]),h1=hy(B[2]);if(Math.max(h0,h1)-top>.05)quad(A[0],A[1],B[0],B[1],top,top,h0,h1,nx,nz,wcol,3,7)}}
-   return 1}
+   return {cx,cz,ux,uz,vx,vz,d0,hw,R,bl}}
+  /* v143: sui tetti come in Sardegna: comignoli sui tetti a falde, pannelli solari termici col serbatoio bianco e cisterne dell'acqua sui tetti piani */
+  const tri143=(ax,ay,az,bx,by,bz,cx,cy,cz,hx,hy2,hz,col)=>{const ux=bx-ax,uy=by-ay,uz=bz-az,vx=cx-ax,vy=cy-ay,vz=cz-az;let nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;if(nx*hx+ny*hy2+nz*hz<0){nx=-nx;ny=-ny;nz=-nz;RF.p.push(ax,ay,az,cx,cy,cz,bx,by,bz)}else RF.p.push(ax,ay,az,bx,by,bz,cx,cy,cz);const l=Math.hypot(nx,ny,nz)||1;for(let i=0;i<3;i++){RF.n.push(nx/l,ny/l,nz/l);RF.u.push(0,0);RF.c.push(col[0],col[1],col[2])}};
+  const q143=(A,Bq,C,D,h,col)=>{tri143(...A,...Bq,...C,...h,col);tri143(...A,...C,...D,...h,col)};
+  function box143(cx,cz,y0,y1,a,b,ux,uz,col){const vx=-uz,vz=ux,c=[];for(const[s,t]of[[-1,-1],[1,-1],[1,1],[-1,1]])c.push([cx+ux*a*s+vx*b*t,cz+uz*a*s+vz*b*t]);
+   for(let i=0;i<4;i++){const p=c[i],q=c[(i+1)%4],hx=(p[0]+q[0])/2-cx,hz=(p[1]+q[1])/2-cz;q143([p[0],y0,p[1]],[q[0],y0,q[1]],[q[0],y1,q[1]],[p[0],y1,p[1]],[hx,0,hz],col)}
+   q143([c[0][0],y1,c[0][1]],[c[1][0],y1,c[1][1]],[c[2][0],y1,c[2][1]],[c[3][0],y1,c[3][1]],[0,1,0],col)}
+  function cyl143(cx,cz,y0,y1,r,col){for(let i=0;i<8;i++){const a0=i*Math.PI/4,a1=a0+Math.PI/4,x0=cx+Math.cos(a0)*r,z0=cz+Math.sin(a0)*r,x1=cx+Math.cos(a1)*r,z1=cz+Math.sin(a1)*r;
+    q143([x0,y0,z0],[x1,y0,z1],[x1,y1,z1],[x0,y1,z0],[Math.cos(a0+.39),0,Math.sin(a0+.39)],col);tri143(cx,y1+r*.15,cz,x0,y1,z0,x1,y1,z1,0,1,0,col)}}
+  const pip143=(P,n,x,z)=>{let c=false;for(let i=0,j=n-1;i<n;j=i++){const zi=P[2*i+1],zj=P[2*j+1];if((zi>z)!=(zj>z)&&x<(P[2*j]-P[2*i])*(z-zi)/(zj-zi)+P[2*i])c=!c}return c};
+  const C143={ch:rgb(0xd6cdbd),cap:rgb(0x6d6259),pan:rgb(0x1c2a3c),fr:rgb(0xa9adb1),tk:rgb(0xeeeeea),ci:[rgb(0x2b2b2b),rgb(0x2f5f9a),rgb(0xdedbd2)]};
+  function roof143(P,n,top,pit,sb,A){if(A<40||A>1500)return;const r=hs(sb+9.1);let cx=0,cz=0;for(let i=0;i<n;i++){cx+=P[2*i]/n;cz+=P[2*i+1]/n}
+   const inside=(x,z,m)=>pip143(P,n,x+m,z+m)&&pip143(P,n,x-m,z+m)&&pip143(P,n,x+m,z-m)&&pip143(P,n,x-m,z-m);
+   if(pit&&pit.R){if(r>.6)return;const k=A>180&&r<.22?2:1;for(let c=0;c<k;c++){const t=(c?-.28:.24)*pit.bl,d=pit.d0+(hs(sb+c)-.5)*pit.hw*.6,x=pit.cx+pit.ux*t+pit.vx*d,z=pit.cz+pit.uz*t+pit.vz*d;if(!inside(x,z,.5))continue;
+     const yt=top+pit.R+.75,yb=top+pit.R*(1-Math.abs(d-pit.d0)/pit.hw)-.25;box143(x,z,yb,yt,.28,.28,pit.ux,pit.uz,C143.ch);box143(x,z,yt,yt+.09,.38,.38,pit.ux,pit.uz,C143.cap)}return}
+   if(r<.3){/* pannello solare termico verso sud con serbatoio orizzontale */const ox=(hs(sb+2)-.5)*Math.sqrt(A)*.3,oz=(hs(sb+3)-.5)*Math.sqrt(A)*.3;let x=cx+ox,z=cz+oz;if(!inside(x,z,1.25)){x=cx;z=cz;if(!inside(x,z,1.25))return}
+    const y=top+.06,A1=[x-.55,y+.25,z+.75],B1=[x+.55,y+.25,z+.75],C1=[x+.55,y+1.45,z-.65],D1=[x-.55,y+1.45,z-.65];q143(A1,B1,C1,D1,[0,.7,.7],C143.pan);q143(A1,B1,C1,D1,[0,-.7,-.7],C143.fr);
+    box143(x,z-.62,y+1.42,y+1.92,.95,.26,1,0,C143.tk);box143(x-.5,z-.65,y,y+1.42,.04,.04,1,0,C143.fr);box143(x+.5,z-.65,y,y+1.42,.04,.04,1,0,C143.fr);
+    if(A>220&&r<.12){const x2=x+1.35;if(inside(x2,z,1.25)){const A2=[x2-.55,y+.25,z+.75],B2=[x2+.55,y+.25,z+.75],C2=[x2+.55,y+1.45,z-.65],D2=[x2-.55,y+1.45,z-.65];q143(A2,B2,C2,D2,[0,.7,.7],C143.pan);box143(x2,z-.62,y+1.42,y+1.92,.95,.26,1,0,C143.tk)}}return}
+   if(r<.55){/* cisterna */const x=cx+(hs(sb+5)-.5)*Math.sqrt(A)*.35,z=cz+(hs(sb+6)-.5)*Math.sqrt(A)*.35;if(!inside(x,z,.8))return;cyl143(x,z,top,top+1.25,.6,C143.ci[Math.floor(hs(sb+7)*3)]);
+    if(r<.38&&inside(x+1.4,z,.8))cyl143(x+1.4,z,top,top+1.25,.6,C143.ci[Math.floor(hs(sb+8)*3)])}}
   /* v138: campanile delle chiese (lato stretto del lato piu' lungo, dentro la sagoma), tetto a piramide */
   function tower138(P,n,gmin,top,boxes){let cx=0,cz=0,sxx=0,szz=0,sxz=0,ar=0;for(let i=0;i<n;i++){cx+=P[2*i]/n;cz+=P[2*i+1]/n}for(let i=0;i<n;i++){const j=(i+1)%n,dx=P[2*i]-cx,dz=P[2*i+1]-cz;sxx+=dx*dx;szz+=dz*dz;sxz+=dx*dz;ar+=P[2*i]*P[2*j+1]-P[2*j]*P[2*i+1]}if(Math.abs(ar)/2<80)return;
    /* asse principale della sagoma: il campanile va a un capo, rientrato verso il centro */const an=.5*Math.atan2(2*sxz,sxx-szz),ux=Math.cos(an),uz=Math.sin(an),vx=-uz,vz=ux;let pm=-1e9,ex=0,ez=0;for(let i=0;i<n;i++){const pr=(P[2*i]-cx)*ux+(P[2*i+1]-cz)*uz;if(pr>pm){pm=pr;ex=P[2*i];ez=P[2*i+1]}}
@@ -134,6 +154,7 @@
    const rr=rc>>16&255,rg=rc>>8&255,rb=rc&255,cotto=rc&&rr-rb>55&&rr-rg>25,wcol=base||rgb(PAL[Math.floor(hs(sb)*PAL.length)]);
    let pit=0;if((cotto&&sp==0&&H<=16&&Math.abs(ar)/2<900)||sp==1){if(sp==1)rcol=rgb(0xb0623f);pit=roof138(P,n,top,rcol,wcol,sp==1?.55:.42,sp==1?7:3.2)}
    if(sp==1)tower138(P,n,gmin,top,boxes);
+   if(lod&&sp==0&&H<=22)roof143(P,n,top,pit,sb,Math.abs(ar)/2);
    if(!pit){const tr=ear(P);
    for(let q=0;q<tr.length;q+=3)for(const t of[tr[q],tr[q+2],tr[q+1]]){RF.p.push(P[2*t],top,P[2*t+1]);RF.n.push(0,1,0);RF.u.push(0,0);RF.c.push(...rcol)}}
    // muretto in cima ai palazzi alti (parapetto)
