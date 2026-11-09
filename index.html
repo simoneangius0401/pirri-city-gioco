@@ -11045,10 +11045,15 @@ const JUMP142=(()=>{let prep=0,jy=0,vy=0,air=0,vault=0,vf=0,fx=0,fz=0,tA=0,land=
     if(vault){const gy=man.y||0,nx=man.x+fx*vf*dt,nz=man.z+fz*vf*dt;let ok=true;try{for(const b of nearLots(nx,nz))if(nx>b.x0&&nx<b.x1&&nz>b.z0&&nz<b.z1&&b.h>gy+jy+.1&&!b.fl){ok=false;break}}catch(e){}if(ok){man.x=nx;man.z=nz}}
     if(jy<=0&&vy<0){jy=0;air=0;vault=0;land=.22}}
    if(land>0)land-=dt;
-   if(jy>0){man.y=(man.y||0)+jy;man.m.position.y+=jy;man.m.rotation.z=vault?-.22*Math.sin(Math.min(1,tA/Math.max(.3,2*vy0/G0))*Math.PI):-.08}
+   /* v145: qui si alza solo la quota usata dagli urti; il corpo si alza in lift(), DOPO il passo del gioco (che rimette Manuel a terra) e prima di disegnare */
+   if(jy>0)man.y=(man.y||0)+jy;
   }catch(e){if(!tick.e){tick.e=1;console.log('MODS salto errore '+e)}}}
  /* la posa si mette subito prima di disegnare (dopo che HERO86 ha messo la camminata) */
- let hooked=0;function hook(){if(hooked||typeof scene==='undefined')return;hooked=1;const prev=scene.onBeforeRender;scene.onBeforeRender=function(){try{if(prev)prev.apply(this,arguments)}catch(e){}pose()}}
+ /* v145 (Simone 9/11: "non salta proprio, fa solo un movimento strano con le gambe"): il tick gira PRIMA di step(), e walk() rimetteva
+    man.m a terra prima del disegno -> si vedevano solo le gambe. Ora l'altezza si somma qui, una volta per fotogramma (render puo' essere chiamato piu' volte). */
+ let liftF=-1;function lift(){try{if(typeof foot==='undefined'||!foot||jy<=0||liftF===tick.l)return;liftF=tick.l;man.m.position.y+=jy;
+   man.m.rotation.z=vault?-.22*Math.sin(Math.min(1,tA/Math.max(.3,2*vy0/G0))*Math.PI):-.08}catch(e){}}
+ let hooked=0;function hook(){if(hooked||typeof scene==='undefined')return;hooked=1;const prev=scene.onBeforeRender;scene.onBeforeRender=function(){try{if(prev)prev.apply(this,arguments)}catch(e){}lift();pose()}}
  return{tick:()=>{hook();tick()},get air(){return air||prep>0},get jy(){return jy},jump:()=>{want=1}}})();
 
 /* ===== v142: JETPACK TURBO (Simone 6/11: "un altro jetpack turbo realistico, nome solo jetpack turbo, 40.000 km/h") =====
@@ -11834,6 +11839,7 @@ const NOV115=(()=>{
   {v:144,n:'Animali animati davvero',d:'Da vicino pecore, mucche, cavalli, asini, maiali e cinghiali sono animati (brucano, camminano muovendo le zampe, scappano); niente più spostamenti a scatti',x:8790,z:-3390,lx:8822,lz:-3421,p:1,ver:1},
   {v:144,n:'Alberi pieni anche da lontano',d:'Le chiome non si “svuotano” più da lontano; alberi 3D veri fino a 110 m (prima 60)',noVai:1,ver:1},
  {v:145,n:'Tasto Spara di nuovo visibile',d:'A piedi il tasto Salta copriva Spara: ora Salta sta sopra il tasto Sali, in alto a destra',noVai:1,ver:1},
+ {v:145,n:'Il salto funziona',d:'Prima Manuel muoveva solo le gambe e restava a terra: ora salta davvero (circa 65 cm) e scavalca ringhiere e muretti bassi',noVai:1,ver:1},
   {v:143,n:'Sardegna nord: Sassari',d:'La mappa ora copre TUTTA la Sardegna: Sassari, il Logudoro, la Nurra, la Gallura',x:-46903,z:-161914,lx:-46803,lz:-161914,ver:1},
   {v:143,n:'Alghero',d:'Alghero e la Riviera del Corallo',x:-67310,z:-143349,lx:-67210,lz:-143349,ver:1},
   {v:143,n:'Olbia',d:'Olbia, il porto dei traghetti e il golfo',x:34205,z:-183775,lx:34305,lz:-183775,ver:1},
