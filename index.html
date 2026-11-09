@@ -7974,10 +7974,10 @@ function step(dt,t){
  try{imp=Math.max(imp,BUS88.bumpMe())}catch(e88){}if(imp>5){try{DANNI88.hit(imp)}catch(e88){}hp-=DMG((Math.min(imp,40)-4)*1.6*(sp>120?.45:1));sh=Math.max(sh,imp*.04);crash(imp)}
  let pc=0;const SQ=QL.sq,RV=QL.rv;PP83.begin();
  for(const p of peds){const ex=p.x-PL.x,ez=p.z-PL.z,d2=ex*ex+ez*ez;
-  if(p.dead){p.dead+=dt;if(p.dead>6){spawnPed(p);continue}if(d2>SQ)continue;p.x+=p.vx*dt;p.z+=p.vz*dt;p.vx*=.96;p.vz*=.96;if(pc<PCAP&&!PP83.take(p,d2))prd(p,pc++,t);continue}
+  if(p.dead){p.dead+=dt;if(p.dead>6){spawnPed(p);continue}if(d2>SQ)continue;p.x+=p.vx*dt;p.z+=p.vz*dt;p.vx*=.96;p.vz*=.96;if(pc<PCAP&&!PP83.take(p,d2)&&!PP83.hide(p,d2))prd(p,pc++,t);continue}
   if(d2>SQ){if(d2>SQ*1.8&&Math.random()<.02)spawnPed(p);continue}
   if(p.fl>0)p.fl-=dt;if(!PED88.step(p,dt,d2)){const w=p.w,q088=p.q;p.q+=p.dir*(p.fl>0?p.sp*3.2:p.sp)*dt;if(p.q<0||p.q>w.len){p.q=cl(p.q,0,w.len);if(!PED88.end(p,d2))p.dir=-p.dir}pe(p.w,p.q);p.ux=TP.ux;p.uz=TP.uz;p.x=TP.x-TP.uz*p.lat;p.z=TP.z+TP.ux*p.lat;PED88.post(p,q088,d2,dt)}
-  if(sp>3.5&&!PP83.hide(p,d2)&&(me.y||0)-(p.gy===undefined?Hn(p.x,p.z):p.gy)<2.2&&sdist(p.x,p.z,ox,oz,me.x,me.z)<4.4){p.dead=.01;p.vx=cl(me.vx*.5+p.x-me.x,-40,40);p.vz=cl(me.vz*.5+p.z-me.z,-40,40);p.ry=R(0,6);wp++;calm=0;sh=Math.max(sh,.15);try{PED88.panic(p.x,p.z,30);SOC90.accident(p.x,p.z,'amb')}catch(e88){}if(pc<PCAP&&!PP83.take(p,d2))prd(p,pc++,t);continue}
+  if(sp>3.5&&!PP83.hide(p,d2)&&(me.y||0)-(p.gy===undefined?Hn(p.x,p.z):p.gy)<2.2&&sdist(p.x,p.z,ox,oz,me.x,me.z)<4.4){p.dead=.01;p.vx=cl(me.vx*.5+p.x-me.x,-40,40);p.vz=cl(me.vz*.5+p.z-me.z,-40,40);p.ry=R(0,6);wp++;calm=0;sh=Math.max(sh,.15);try{PED88.panic(p.x,p.z,30);SOC90.accident(p.x,p.z,'amb')}catch(e88){}if(pc<PCAP&&!PP83.take(p,d2)&&!PP83.hide(p,d2))prd(p,pc++,t);continue}
   if(d2<RV&&pc<PCAP&&!PP83.take(p,d2)&&!PP83.hide(p,d2))prd(p,pc++,t)}
  PP83.end(dt);for(let q=0;q<5;q++){PM[q].count=pc*(q>2?2:1);PM[q].instanceMatrix.needsUpdate=PM[q].instanceColor.needsUpdate=true}
  if(POL107.arrest(dt,sp)||(!POL107.off&&cops.some(c=>Math.hypot(c.x-tg.x,c.z-tg.z)<9)&&(foot||sp<4)&&(tg.y||0)-Hn(tg.x,tg.z)<6))bu+=dt*28;else bu=Math.max(0,bu-dt*20);
@@ -8228,7 +8228,7 @@ const WALK83=(()=>{const V=THREE.Vector3,Q=THREE.Quaternion,X=new V(1,0,0),Y=new
    adattata a tutti. Ne vengono preparate alcune copie; ogni fotogramma le copie vanno ai pedoni piu' vicini,
    gli altri restano quelli semplici di prima (lontano non si nota la differenza e il telefono non si affatica).
    I modelli stanno nella cartella modelli/persone/ accanto al gioco: se mancano, restano i pedoni di prima. */
-const PP83=(()=>{const NOMI=['eric','carla','claudia','nathan','sophia','manuel',/* v108 */'nonna','tuta','ragazzo','ragazza','polo','estate','giovane','giacca',/* v136 */'impiegato','felpa','cappotto','donna','ragazza2',/* v146 */'nonno',/* v147: Microsoft Rocketbox (MIT) con il viso animabile */'rb_uomo1','rb_uomo2','rb_uomo3','rb_donna1','rb_donna2','rb_donna3'],OWN108={tuta:1},SL=[],R2=115*115;let ok=false,clip=null,N=24,used=0,fr=0;
+const PP83=(()=>{const NOMI=[/* v147b: prima Manuel, Sophia e Nathan (la camminata): il giocatore e la ragazza veri arrivano subito */'manuel','sophia','nathan','eric','carla','claudia',/* v108 */'nonna','tuta','ragazzo','ragazza','polo','estate','giovane','giacca',/* v136 */'impiegato','felpa','cappotto','donna','ragazza2',/* v146 */'nonno',/* v147: Microsoft Rocketbox (MIT) con il viso animabile */'rb_uomo1','rb_uomo2','rb_uomo3','rb_donna1','rb_donna2','rb_donna3'],OWN108={tuta:1},SL=[],R2=115*115;let ok=false,clip=null,N=24,used=0,fr=0;
  const fixMat=m=>{const L=Array.isArray(m)?m:[m];for(const q of L){q.userData.noDet=1;q.userData.noCan=1;for(const k of['map','emissiveMap'])if(q[k])q[k].encoding=THREE.LinearEncoding;q.envMapIntensity=.4;q.needsUpdate=true}};
 /* v90: versione leggera di ogni persona per quando e' lontana (oltre 35 m): i vertici vicini (meno di ~1/55 dell'altezza) si fondono in uno,
    restano le stesse ossa e la stessa immagine; circa un quarto dei triangoli */
@@ -8239,12 +8239,18 @@ const PP83=(()=>{const NOMI=['eric','carla','claudia','nathan','sophia','manuel'
   out=new THREE.BufferGeometry();for(const k in g.attributes)out.setAttribute(k,g.attributes[k]);out.setIndex(new THREE.BufferAttribute(P.count>65535?new Uint32Array(ix):new Uint16Array(ix),1));
   for(const gr of g.groups){/* gruppi di materiali: si tiene il conto sulla nuova lista */}out.boundingSphere=g.boundingSphere;out.boundingBox=g.boundingBox;LOWT[0]+=n/3;LOWT[1]+=ix.length/3}catch(e){out=g}LOWC.set(g.uuid,out);return out}
  const LOWT=[0,0];
- async function init(){if(typeof THREE.GLTFLoader==='undefined')return;try{N=QL&&QL.pd<=500?14:24}catch(e){}
+ async function init(){/* v147b: le figure vecchie di giocatore e ragazza (forme geometriche) non si mostrano mai, neanche durante il caricamento */try{for(const G of [man.m,gf.m])for(const c of G.children)c.visible=false}catch(e){}
+  if(typeof THREE.GLTFLoader==='undefined')return;try{N=QL&&QL.pd<=500?14:24}catch(e){}
   const L=new THREE.GLTFLoader(),base=new URL('modelli/persone/',location.href).href;
   /* v147: le persone Rocketbox (35-46 MB l'una) stanno sul sito dei dati pirri-city-dati7; se non risponde, copia accanto al gioco */
   const RB147='https://simoneangius0401.github.io/pirri-city-dati7/persone/';
   const ld=n=>new Promise((res,rej)=>/^rb_/.test(n)?L.load(RB147+n+'.glb',res,undefined,()=>LOADM83(L,base+n,res,rej)):LOADM83(L,base+n,res,rej));const T=[];
-  for(const n of NOMI){try{const g=await ld(n);g.nome=n;T.push(g)}catch(e){console.warn('persone: manca',n)}}/* v108: agli altri moduli (Vespe, mondo grande, locali, eroe) solo le Renderpeople: i modelli nuovi hanno ossa diverse e li' restavano giganti a braccia aperte */window.PPT83=T.filter(g=>{let r=false;g.scene.traverse(b=>{if(b.isBone&&/(^|_)upperarm_l(_\d+)?$/.test(b.name))r=true});return r});window.PPT108=T;
+  /* v147b (Simone: "perche' ci sono di nuovo i personaggi con le forme geometriche?"): prima si aspettavano TUTTE le persone (anche le 6 nuove da 35-46 MB)
+     prima di dare Manuel, Sophia e i passanti veri -> per molto tempo restavano le figure geometriche. Ora: appena ci sono Manuel/Sophia/Nathan si danno all'eroe,
+     poi le persone di prima, e solo DOPO (in sottofondo) le persone nuove col viso, che si aggiungono ai passanti man mano che arrivano. */
+  const pub=()=>{window.PPT83=T.filter(g=>{let r=false;g.scene.traverse(b=>{if(b.isBone&&/(^|_)upperarm_l(_\d+)?$/.test(b.name))r=true});return r});window.PPT108=T};
+  const RBN=NOMI.filter(n=>/^rb_/.test(n));
+  for(const n of NOMI){if(/^rb_/.test(n))continue;try{const g=await ld(n);g.nome=n;T.push(g);if(n==='nathan'||T.length===3)pub()}catch(e){console.warn('persone: manca',n)}}/* v108: agli altri moduli (Vespe, mondo grande, locali, eroe) solo le Renderpeople: i modelli nuovi hanno ossa diverse e li' restavano giganti a braccia aperte */window.PPT83=T.filter(g=>{let r=false;g.scene.traverse(b=>{if(b.isBone&&/(^|_)upperarm_l(_\d+)?$/.test(b.name))r=true});return r});window.PPT108=T;
   const nat=T.find(g=>g.animations&&g.animations.length);if(!nat||T.length<2){console.warn('persone vere non disponibili');return}clip=nat.animations[0];
   /* v108: persone con scheletro diverso (Mixamo, VRM, Character Creator): la camminata di Nathan viene trasferita confrontando la direzione delle ossa (RET88) */
   const isRP=g=>{let r=false;g.scene.traverse(b=>{if(b.isBone&&/(^|_)upperarm_l(_\d+)?$/.test(b.name))r=true});return r};
@@ -8254,7 +8260,7 @@ const PP83=(()=>{const NOMI=['eric','carla','claudia','nathan','sophia','manuel'
    const M=new THREE.Matrix4().makeBasis(L,u,f).invert(),q=new THREE.Quaternion().setFromRotationMatrix(M);g.scene.quaternion.premultiply(q);g.scene.updateMatrixWorld(true)};
   for(const g of T){if(isRP(g)||typeof RET88==='undefined')continue;try{if(OWN108[g.nome]&&g.animations&&g.animations[0]){g.walk108=g.animations[0];continue}up108(g)}catch(e){console.warn('persone: raddrizza',g.nome,e)}try{const src=THREE.SkeletonUtils.clone(nat.scene);g.walk108=RET88.bake(src,clip,g.scene,{name:'cammina',fps:30});if(!g.walk108)console.warn('persone: camminata non trasferita',g.nome)}catch(e){console.warn('persone: camminata',g.nome,e)}}
   for(let i=T.length-1;i>=0;i--)if(!isRP(T[i])&&!T[i].walk108)T.splice(i,1);
-  const ord=[];for(let i=0;i<N;i++)ord.push(T[i%T.length]);ord.sort(()=>Math.random()-.5);for(let i=0;i<N;i++){const g=ord[i],o=THREE.SkeletonUtils.clone(g.scene);
+  const mk=g=>{const o=THREE.SkeletonUtils.clone(g.scene);
    o.traverse(m=>{if(m.isMesh){m.frustumCulled=false;m.castShadow=true;m.receiveShadow=true;fixMat(m.material);if(m.isSkinnedMesh){m.userData.gHi=m.geometry;m.userData.gLo=LOW(m.geometry)}}});
    const mx=new THREE.AnimationMixer(o),act=mx.clipAction(g.walk108||WALK83.retarget(clip,o));act.play();act.time=Math.random()*clip.duration;mx.update(0);
    o.updateMatrixWorld(true);let hy=0,fy=1e9;const v=new THREE.Vector3();o.traverse(b=>{if(b.isBone){b.getWorldPosition(v);if(/head$/.test(b.name)||(g.walk108&&(RET88.canon(b.name)==='Head'||/^head/i.test(b.name))))hy=Math.max(hy,v.y);fy=Math.min(fy,v.y)}});if(!hy){o.traverse(b=>{if(b.isBone){b.getWorldPosition(v);hy=Math.max(hy,v.y)}});hy-=(hy-fy)*.06}
@@ -8262,7 +8268,11 @@ const PP83=(()=>{const NOMI=['eric','carla','claudia','nathan','sophia','manuel'
    /* v108: per i modelli con l'animazione propria (ossa diverse) altezza e appoggio dai vertici veri della pelle (con le ossa si finiva mezzi sotto terra) */
    if(OWN108[g.nome]){let y0=1e9,y1=-1e9;const vv=new THREE.Vector3();o.traverse(m=>{if(m.isSkinnedMesh&&m.boneTransform){const P=m.geometry.attributes.position;for(let i=0;i<P.count;i+=7){vv.fromBufferAttribute(P,i);m.boneTransform(i,vv);vv.applyMatrix4(m.matrixWorld);y0=Math.min(y0,vv.y);y1=Math.max(y1,vv.y)}}});if(y1>y0){s0=1.74/(y1-y0);dy=-y0*s0}}
    const w=new THREE.Group();w.add(o);o.scale.multiplyScalar(s0);o.position.y+=dy;w.visible=false;scene.add(w);
-   SL.push({w,o,mx,act,p:null,on:0,s0})}
+   SL.push({w,o,mx,act,p:null,on:0,s0})};
+  const ord=[];for(let i=0;i<N;i++)ord.push(T[i%T.length]);ord.sort(()=>Math.random()-.5);for(let i=0;i<N;i++){try{mk(ord[i])}catch(e){console.warn('persone: copia',e)}}
+  /* v147b: persone nuove col viso (Rocketbox) caricate DOPO, in sottofondo: ognuna diventa 2 passanti in piu' appena arriva */
+  setTimeout(async()=>{for(const n of RBN){try{const g=await ld(n);g.nome=n;if(typeof RET88==='undefined')continue;up108(g);const src=THREE.SkeletonUtils.clone(nat.scene);g.walk108=RET88.bake(src,clip,g.scene,{name:'cammina',fps:30});
+    if(!g.walk108)continue;T.push(g);mk(g);mk(g);console.log('MODS persona col viso pronta',n)}catch(e){console.warn('persone: manca',n,e)}}},4000);
   ok=true;console.log('MODS persone vere pronte',SL.length,'triangoli lontano',Math.round(LOWT[1]),'di',Math.round(LOWT[0]))}
  const gy=(x,z)=>{try{return typeof GY86==='function'?GY86(x,z):Hn(x,z)}catch(e){return 0}};
  let ALLOW=new Set(),ac=0;
@@ -8271,7 +8281,7 @@ const PP83=(()=>{const NOMI=['eric','carla','claudia','nathan','sophia','manuel'
   /* si preferiscono quelli davanti alla telecamera: quelli dietro "contano" come se fossero tre volte piu' lontani */
   for(const q of peds){const dx=q.x-c.x,dz=q.z-c.z;let d=dx*dx+dz*dz;if(d>=R2)continue;if(dx*cv.x+dz*cv.z<-4)d*=9;L.push([d,q])}L.sort((a,b)=>a[0]-b[0]);ALLOW=new Set(L.slice(0,SL.length).map(a=>a[1]))}}
  /* i pedoni vicini che non hanno un modello vero non si disegnano proprio: quelli che vedi sono tutti persone vere */
- function hide(p,d2){return ok&&d2<R2*.8&&!p.dead&&!ALLOW.has(p)}
+ function hide(p,d2){/* v147b: nessuna figura geometrica, mai: si vede solo chi ha la persona vera */return !ALLOW.has(p)}
  /* restituisce true se il pedone viene disegnato come persona vera */
  function take(p,d2){if(!ok||d2>R2||!(ALLOW.has(p)||(p.dead&&((p.s83&&p.s83.p===p)||d2<900))))return false;let s=p.s83&&p.s83.p===p?p.s83:null;
   if(!s){s=SL.find(q=>!q.on&&(!q.p||q.p.s83!==q));if(!s)return false;s.p=p;p.s83=s;s.act.time=Math.random()*clip.duration}
@@ -11938,6 +11948,7 @@ const NOV115=(()=>{
  {v:146,n:'Cervi sardi',d:'Cervi sardi solo dove vivono davvero: Sette Fratelli, Sulcis (Monte Arcosu), Arburese e Montiferru',x:29138,z:-7517,lx:29138,lz:-7547,p:1,ver:1},
  {v:146,n:'Volpi',d:'Volpi nella macchia e nelle campagne di tutta la Sardegna',x:6148,z:2251,lx:6148,lz:2236,p:1,ver:1},
  {v:147,n:'Persone col viso vivo',d:'Sei passanti nuovi (Microsoft Rocketbox) che sbattono le palpebre, muovono gli occhi, sorridono e cambiano espressione; al telefono o in coppia muovono la bocca, se hanno paura spalancano occhi e bocca',noVai:1,ver:1},
+ {v:147,n:'Niente più personaggi a forme geometriche',d:'Manuel, Sophia e i passanti veri arrivano subito; le persone nuove col viso si aggiungono dopo, mentre giochi. I personaggi geometrici non si vedono più, neanche durante il caricamento',noVai:1,ver:1},
   {v:143,n:'Sardegna nord: Sassari',d:'La mappa ora copre TUTTA la Sardegna: Sassari, il Logudoro, la Nurra, la Gallura',x:-46903,z:-161914,lx:-46803,lz:-161914,ver:1},
   {v:143,n:'Alghero',d:'Alghero e la Riviera del Corallo',x:-67310,z:-143349,lx:-67210,lz:-143349,ver:1},
   {v:143,n:'Olbia',d:'Olbia, il porto dei traghetti e il golfo',x:34205,z:-183775,lx:34305,lz:-183775,ver:1},
