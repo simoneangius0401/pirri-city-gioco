@@ -11462,6 +11462,81 @@ const REF143=(()=>{let rt=null,rB=null,cc=null,face=0,fr=0,on=false,ready=false,
    ren.shadowMap.autoUpdate=au;face=(face+1)%6}catch(e){if(!tick.e){tick.e=1;console.warn('riflessi',e)}REF143.off=1}}
  return{tick,off:0,get n(){return L.length}}})();
 
+/* v148: PASSO VERO per gli animali a quattro zampe che nel modello non hanno la camminata (pecora, capra, mucca, cervo).
+   - modelli SENZA ossa (pecora e cervo: animati solo a "forme"): GAIT148.rig() trova da solo le quattro zampe nella maglia (pezzi staccati sotto la pancia),
+     mette un osso a meta' coscia e uno allo stinco per ogni zampa e lega i punti alle ossa con un passaggio morbido verso il corpo;
+   - modelli CON le ossa ma senza camminata (mucca): si usano le ossa delle zampe che ci sono gia' (nomi in ty.gait.legs).
+   GAIT148.step() muove le zampe come un quadrupede vero: al passo una zampa alla volta (dietro sinistra, davanti sinistra, dietro destra, davanti destra),
+   di corsa al trotto (diagonali insieme); il piede resta fermo a terra mentre il corpo avanza (la cadenza si calcola dalla velocita' e dalla lunghezza della zampa),
+   si piega al ginocchio solo quando la zampa torna avanti, il corpo dondola appena. Niente scivolate.
+   Assi: tutto e' calcolato nello spazio del modello (radice del file), "avanti" e "su" arrivano dalla matrice di normalizzazione di ANI143 (ty.M: davanti = +z, su = +y). */
+const GAIT148=(()=>{
+ const V=()=>new THREE.Vector3(),Q=()=>new THREE.Quaternion();
+ const sm=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t)};
+ /* direzioni del modello: avanti/su/lato nello spazio della radice */
+ function axes(M){const R=new THREE.Matrix4().extractRotation(M).transpose(),f=V().set(0,0,1).applyMatrix4(R).normalize(),u=V().set(0,1,0).applyMatrix4(R).normalize();return{f,u,l:V().crossVectors(u,f).normalize()}}
+ /* ossa automatiche per una maglia senza scheletro. Restituisce true se ha trovato 4 zampe */
+ function rig(g,M){const R=g.scene;R.updateMatrixWorld(true);let mesh=null;R.traverse(m=>{if(m.isMesh&&!m.isSkinnedMesh&&(!mesh||m.geometry.attributes.position.count>mesh.geometry.attributes.position.count))mesh=m});
+  if(!mesh)return false;const ge=mesh.geometry,pos=ge.attributes.position,n=pos.count,A=axes(M),v=V();
+  const U=new Float32Array(n),F=new Float32Array(n),L=new Float32Array(n),W=new Float32Array(n*3);let u0=1e9,u1=-1e9;
+  for(let i=0;i<n;i++){v.fromBufferAttribute(pos,i).applyMatrix4(mesh.matrixWorld);W[3*i]=v.x;W[3*i+1]=v.y;W[3*i+2]=v.z;U[i]=v.dot(A.u);F[i]=v.dot(A.f);L[i]=v.dot(A.l);if(U[i]<u0)u0=U[i];if(U[i]>u1)u1=U[i]}
+  const Ht=u1-u0;
+  /* punti uguali uniti (i file separano i punti lungo le cuciture della pelle) */
+  const key=new Map(),id=new Int32Array(n);let nw=0;const k=1/(Ht*2e-4);for(let i=0;i<n;i++){const s=Math.round(W[3*i]*k)+','+Math.round(W[3*i+1]*k)+','+Math.round(W[3*i+2]*k);let q=key.get(s);if(q===undefined){q=nw++;key.set(s,q)}id[i]=q}
+  const ix=ge.index?ge.index.array:null,nt=(ix?ix.length:n)/3,wu=new Float32Array(nw).fill(1e9);for(let i=0;i<n;i++)if(U[i]<wu[id[i]])wu[id[i]]=U[i];
+  /* pezzi staccati sotto una certa altezza: si sale finche' restano esattamente 4 pezzi grossi = le zampe libere fin sotto la pancia */
+  function comps(thr){const p=new Int32Array(nw);for(let i=0;i<nw;i++)p[i]=i;const fd=a=>{while(p[a]!==a){p[a]=p[p[a]];a=p[a]}return a};
+   for(let t=0;t<nt;t++){const a=id[ix?ix[3*t]:3*t],b=id[ix?ix[3*t+1]:3*t+1],c=id[ix?ix[3*t+2]:3*t+2];if(wu[a]<thr&&wu[b]<thr&&wu[c]<thr){p[fd(a)]=fd(b);p[fd(b)]=fd(c)}}
+   const cnt=new Map();let tot=0;for(let i=0;i<nw;i++)if(wu[i]<thr){const r=fd(i);cnt.set(r,(cnt.get(r)||0)+1);tot++}
+   const big=[...cnt].filter(e=>e[1]>tot*.06),sz=big.map(e=>e[1]);return{big:big.map(e=>e[0]),fd,tot,bal:sz.length?Math.max(...sz)/Math.min(...sz):9}}
+  /* ci si ferma appena compare un quinto pezzo (la pancia) o due zampe si uniscono: oltre, un "pezzo" sarebbe zampa + lana della pancia */
+  let best=null;for(let f=.08;f<=.62;f+=.02){const c=comps(u0+f*Ht);if(c.big.length===4&&c.bal<2.4)best={f,c};else if(best)break}
+  if(!best)return false;const yB=u0+best.f*Ht,fd=best.c.fd,root=best.c.big,leg=new Int8Array(n).fill(-1);
+  /* quale zampa: le due piu' avanti = anteriori; in ogni coppia sinistra/destra dal lato */
+  const st=root.map(()=>({n:0,f:0,l:0,lo:1e9}));for(let i=0;i<n;i++){if(wu[id[i]]>=yB)continue;const r=root.indexOf(fd(id[i]));if(r<0)continue;const s=st[r];s.n++;s.f+=F[i];s.l+=L[i];if(U[i]<s.lo)s.lo=U[i]}
+  st.forEach(s=>{s.f/=s.n;s.l/=s.n});const ord=[0,1,2,3].sort((a,b)=>st[b].f-st[a].f),fr=ord.slice(0,2).sort((a,b)=>st[b].l-st[a].l),bk=ord.slice(2).sort((a,b)=>st[b].l-st[a].l);
+  const slot=[fr[0],fr[1],bk[0],bk[1]];/* 0 ant sx, 1 ant dx, 2 post sx, 3 post dx */
+  for(let i=0;i<n;i++){if(wu[id[i]]>=yB)continue;const r=root.indexOf(fd(id[i]));if(r>=0)leg[i]=slot.indexOf(r)}
+  /* ossa: radice + (coscia, stinco) per zampa; centri presi dalla maglia a tre altezze */
+  const bones=[new THREE.Bone()];bones[0].name='g148root';R.add(bones[0]);const info=[];
+  const cen=(s,a,b)=>{const c=V();let m=0;for(let i=0;i<n;i++)if(leg[i]===s){const t=(yB-U[i])/(yB-st[slot[s]].lo);if(t>=a&&t<=b){c.x+=W[3*i];c.y+=W[3*i+1];c.z+=W[3*i+2];m++}}return m?c.multiplyScalar(1/m):null};
+  for(let s=0;s<4;s++){const lo=st[slot[s]].lo,Ll=yB-lo,tk=s<2?.5:.46,top=cen(s,0,.14),kn=cen(s,tk-.07,tk+.07),ft=cen(s,.88,1);if(!top||!kn||!ft)return false;
+   const hip=top.clone().addScaledVector(A.u,Ll*.1),bu=new THREE.Bone(),bl=new THREE.Bone();bu.name='g148u'+s;bl.name='g148l'+s;bu.position.copy(hip);bl.position.copy(kn).sub(hip);bones[0].add(bu);bu.add(bl);bones.push(bu,bl);info.push({lo,Ll,tk})}
+  const SI=new Uint16Array(n*4),SW=new Float32Array(n*4);
+  for(let i=0;i<n;i++){const s=leg[i];if(s<0){SW[4*i]=1;continue}const o=info[s],t=(yB-U[i])/o.Ll,wl=sm(0,.2,t),wk=sm(o.tk-.09,o.tk+.09,t);
+   SI[4*i]=0;SW[4*i]=1-wl;SI[4*i+1]=1+2*s;SW[4*i+1]=wl*(1-wk);SI[4*i+2]=2+2*s;SW[4*i+2]=wl*wk}
+  ge.setAttribute('skinIndex',new THREE.BufferAttribute(SI,4));ge.setAttribute('skinWeight',new THREE.BufferAttribute(SW,4));
+  const sk=new THREE.SkinnedMesh(ge,mesh.material);sk.name=mesh.name;sk.position.copy(mesh.position);sk.quaternion.copy(mesh.quaternion);sk.scale.copy(mesh.scale);sk.matrix.copy(mesh.matrix);sk.matrixAutoUpdate=mesh.matrixAutoUpdate;
+  if(mesh.morphTargetInfluences){sk.morphTargetInfluences=mesh.morphTargetInfluences.slice();sk.morphTargetDictionary=mesh.morphTargetDictionary}
+  for(const m of(Array.isArray(sk.material)?sk.material:[sk.material])){m.skinning=true;m.needsUpdate=true}
+  const par=mesh.parent;par.add(sk);par.remove(mesh);R.updateMatrixWorld(true);sk.bind(new THREE.Skeleton(bones),sk.matrixWorld);sk.frustumCulled=false;
+  return{legs:[0,1,2,3].map(s=>['g148u'+s,'g148l'+s]),f:best.f,auto:1}}
+ /* prepara una copia animata: cerca le ossa per nome, misura zampe e inclinazione di partenza */
+ function setup(o,M,legs,neut){o.updateMatrixWorld(true);const A=axes(M),by={};o.traverse(b=>{if(b.isBone)by[b.name]=b});const oq=o.getWorldQuaternion(Q()).invert(),sc=V().setFromMatrixScale(M).y,a=V(),b=V(),c=V(),L=[];
+  for(let s=0;s<4;s++){const u=by[legs[s][0]],l=by[legs[s][1]];if(!u||!l)return null;let e=l;while(e.children.length&&e.children[0].isBone)e=e.children[0];
+   u.getWorldPosition(a);l.getWorldPosition(b);e.getWorldPosition(c);if(e===l){/* ossa automatiche: il piede e' sotto il ginocchio quanto la coscia */c.copy(b).add(b).sub(a)}
+   const wInv=o.matrixWorld.clone().invert();a.applyMatrix4(wInv);b.applyMatrix4(wInv);c.applyMatrix4(wInv);const d=c.clone().sub(a);
+   L.push({u,l,ru:u.quaternion.clone(),rl:l.quaternion.clone(),wu:oq.clone().multiply(u.getWorldQuaternion(Q())),wl:oq.clone().multiply(l.getWorldQuaternion(Q())),
+    phi0:Math.atan2(d.dot(A.f),-d.dot(A.u)),len:Math.max(.02,-d.dot(A.u))*sc,front:s<2})}
+  return{L,lat:A.l,len:(L[0].len+L[1].len+L[2].len+L[3].len)/4,ph:Math.random(),g:0,neut:neut?1:0}}
+ /* la testa (i punti piu' alti) e' dietro? allora il modello e' girato al contrario */
+ function back(g,M){const R=g.scene;R.updateMatrixWorld(true);const A=axes(M),v=V(),P=[];R.traverse(m=>{if(!m.isMesh)return;const pos=m.geometry.attributes.position;if(m.isSkinnedMesh)m.skeleton.update();
+   for(let i=0;i<pos.count;i+=2){v.fromBufferAttribute(pos,i);if(m.isSkinnedMesh)m.boneTransform(i,v);v.applyMatrix4(m.matrixWorld);P.push([v.dot(A.u),v.dot(A.f)])}});
+  P.sort((a,b)=>b[0]-a[0]);let f0=1e9,f1=-1e9,s=0;for(const q of P){if(q[1]<f0)f0=q[1];if(q[1]>f1)f1=q[1]}const n=Math.max(8,P.length*.04|0);for(let i=0;i<n;i++)s+=P[i][1];return s/n<(f0+f1)/2}
+ const qa=Q(),qb=Q(),PW=[.25,.75,0,.5],PT=[0,.5,.5,0];
+ /* un fotogramma: v = velocita' vera (m/s), k = scala dell'animale. Restituisce quanto alzare/abbassare il corpo (m) */
+ function step(G,v,k,dt){if(!G)return 0;const mov=v>.05;G.g+=((mov?1:0)-G.g)*Math.min(1,dt*(mov?7:4));if(G.g<.004&&!mov){if(G.on){G.on=0;for(const q of G.L){q.u.quaternion.copy(q.ru);q.l.quaternion.copy(q.rl)}}return 0}
+  G.on=1;const trot=v>1.7,tr=G.tr=(G.tr||0)+((trot?1:0)-(G.tr||0))*Math.min(1,dt*5),Am=.3+.2*tr,duty=.62-.17*tr,Ll=G.len*k,stride=2*Ll*Math.sin(Am)/duty;
+  if(mov)G.ph=(G.ph+v*dt/Math.max(.05,stride))%1;let lift=0;
+  for(let s=0;s<4;s++){const q=G.L[s],p=(G.ph+PW[s]*(1-tr)+PT[s]*tr)%1;let phi,fl=0;
+   if(p<duty)phi=Am*(1-2*p/duty);else{const w=(p-duty)/(1-duty);phi=-Am+2*Am*(.5-.5*Math.cos(Math.PI*w));fl=Math.sin(Math.PI*w)*(.55+.35*tr)}
+   /* neut=1 (ossa automatiche: la posa di partenza e' a meta' passo) -> si parte dalla zampa dritta; neut=0 (ossa vere) -> si oscilla attorno alla posa da fermo dell'autore */const al=G.g*(G.neut*q.phi0-phi)+G.g*fl*(q.front?-.2:.35),be=G.g*fl*(q.front?1.1:-.9);
+   qa.setFromAxisAngle(G.lat,al);qb.copy(q.wu).invert().multiply(qa).multiply(q.wu);q.u.quaternion.copy(q.ru).multiply(qb);
+   qa.setFromAxisAngle(G.lat,be);qb.copy(q.wl).invert().multiply(qa).multiply(q.wl);q.l.quaternion.copy(q.rl).multiply(qb);
+   lift+=1-Math.cos(Math.abs(phi))}
+  return -G.g*Ll*lift/4*.6+G.g*Math.sin(G.ph*12.566)*.006*(1+2*tr)}
+ return{rig,setup,step,axes,back}})();
+
 /* ===== v143: GREGGI E MANDRIE IN TUTTA LA SARDEGNA (Simone 7/11, punto 14) =====
    Nei pascoli e nei campi veri (OSM/Overture -> tools/dati_animali143.py -> mondo/animali143.json): pecore (le piu' tante), capre sulla macchia (Low-poly Goat, Zafflex CC-BY, tinta marrone),
    mucche e cavalli nei pascoli grandi, maiali e asini vicino alle aziende, cinghiali nella macchia. Con molti greggi c'e' il cane pastore che gira attorno.
@@ -11471,13 +11546,13 @@ const REF143=(()=>{let rt=null,rB=null,cc=null,face=0,fr=0,on=false,ready=false,
 const ANI143=(()=>{let D=null,ld=0,ok=0;const C=new Map(),CS=1000,ACT=new Map(),DEAD=new Map(),T=[];let dogM=null,DOGS=[],t0=0,lastF=0;
  /* tipo: file del modello (riserva se manca), altezza al garrese in m, velocita' di fuga, colore per tingere la riserva */
  /* an: animazioni vere (nome o pezzo [inizio,fine] in s del clip unico); senza 'walk' l'animale non si sposta (niente scivolate senza zampe) */
- const TY=[{f:'pecora',h:.85,v:4,an:{idle:/Animation/}},{f:'capra',alt:'pecora',h:.78,v:5,tint:[.4,.3,.22],ft:1,an:{}},{f:'mucca',alt:'cavallo',h:1.42,v:3,tint:[.55,.42,.32],an:{idle:/idle1/,death:/Death/}},
+ const TY=[{f:'pecora',h:.85,v:4,gait:{},an:{idle:/Animation/}},{f:'capra',alt:'pecora',h:.78,v:5,tint:[.4,.3,.22],ft:1,an:{}},{f:'mucca',alt:'cavallo',h:1.42,v:3,tint:[.55,.42,.32],gait:{legs:[['lfl1','lfl2'],['lfr1','lfr2'],['lbl1','lbl2'],['lbr1','lbr2']]},an:{idle:/idle1/,death:/Death/}},
   {f:'cavallo',h:1.62,v:7,an:{idle:[1,5],walk:[35.67,37.0],run:[33.67,34.33]}},
   {f:'maiale',alt:'pecora',h:.8,v:3,tint:[.85,.68,.62],an:{walk:/Walk/}},{f:'asino',alt:'cavallo',h:1.25,v:4,tint:[.5,.47,.44],flip:1,an:{idle:/^H_Idle_01$/,eat:/^H_Eat$/,walk:/^H_Walk$/,run:/^H_Canter$/,death:/^H_Death01$/}},
   /* v146: cinghiale vero (Wild Boar - Male, Dakta.Grower.N CC-BY: 73 movimenti, qui 5) al posto del maiale scuro; se manca resta il maiale */
   {f:'cinghiale',alt:'maiale',h:.85,v:7,tint:[.22,.19,.16],ft:1,k:'cinghiale',an:{idle:/Idle_1$/,eat:/Eat_loop_1$/,walk:/Walk_F_IP$|^Walk$/,run:/Run_F_IP$/,death:/Death_L$/}},
   /* v146: volpe (tipo 7) e cervo sardo (tipo 8), Animated Fox / Animated Deer di igor-lir (CC-BY, animazione a morph: guardarsi intorno / brucare). Posti: tools/volpi146.py */
-  {f:'volpe',h:.5,v:6,k:'volpe',an:{idle:/./}},{f:'cervo',h:1.45,v:6,k:'cervo',an:{idle:/./}}];
+  {f:'volpe',h:.5,v:6,k:'volpe',an:{idle:/./}},{f:'cervo',h:1.45,v:6,k:'cervo',gait:{},an:{idle:/./}}];
  let NA=24,NR=70;try{if(QL&&QL.pd<=500){NA=12;NR=50}}catch(e){}
  const gy=(x,z)=>{try{return H(x,z)}catch(e){return 0}};
  const cell=(x,z)=>Math.floor(x/CS)+'_'+Math.floor(z/CS);
@@ -11510,11 +11585,11 @@ const ANI143=(()=>{let D=null,ld=0,ok=0;const C=new Map(),CS=1000,ACT=new Map(),
   o.traverse(m=>{if(m.isMesh){m.frustumCulled=false;m.castShadow=true;m.material=Array.isArray(m.material)?m.material.map(x=>x.clone()):m.material.clone();fix(m.material);
    if(ty.tint&&(ty.fb||ty.ft))for(const x of(Array.isArray(m.material)?m.material:[m.material])){x.color=new THREE.Color(ty.tint[0],ty.tint[1],ty.tint[2]);x.map=null;x.needsUpdate=true}}});
   const r=new THREE.Group();r.matrixAutoUpdate=false;r.matrix.copy(ty.M);r.add(o);const w=new THREE.Group();w.add(r);scene.add(w);
-  c={w,mx:new THREE.AnimationMixer(o),act:{},cur:null,used:0};for(const k in ty.cl){const a=c.mx.clipAction(ty.cl[k]);if(k==='death'){a.setLoop(THREE.LoopOnce,1);a.clampWhenFinished=true}c.act[k]=a}ty.pool.push(c);return c}
+  c={w,mx:new THREE.AnimationMixer(o),act:{},cur:null,used:0,G:ty.gait&&ty.gait.legs?GAIT148.setup(o,ty.M,ty.gait.legs,ty.gait.auto):null};for(const k in ty.cl){const a=c.mx.clipAction(ty.cl[k]);if(k==='death'){a.setLoop(THREE.LoopOnce,1);a.clampWhenFinished=true}c.act[k]=a}ty.pool.push(c);return c}
  function play(c,k,ts){const a=c.act[k];if(!a){return false}if(c.cur!==a){if(c.cur)c.cur.fadeOut(.25);a.reset().fadeIn(.25).play();if(k!=='death')a.time=Math.random()*a.getClip().duration;c.cur=a}a.timeScale=ts;return true}
  let tA=0;
  async function prep(i){const ty=TY[i];if(ty.st)return;ty.st=1;let g=null;try{g=await ldM(ty.f)}catch(e){if(ty.alt){try{g=await ldM(ty.alt);ty.fb=1}catch(e2){}}}
-  if(!g){ty.st=3;return}try{const b=bake(g,ty);ty.len=b.len;ty.g=g;ty.M=b.M;ty.cl=clips(ty,g);ty.pool=[];ty.im=b.out.map(([ge,mm])=>{const im=new THREE.InstancedMesh(ge,mm,CAP);im.count=0;im.frustumCulled=false;im.castShadow=true;im.receiveShadow=true;scene.add(im);return im});ty.st=2;console.log('MODS animali pronti',ty.f,ty.fb?'(riserva)':'')}catch(e){console.warn('animali',ty.f,e);ty.st=3}}
+  if(!g){ty.st=3;return}try{let b=bake(g,ty);/* v148: passo vero (GAIT148) */if(ty.gait&&!ty.fb){try{if(GAIT148.back(g,b.M)){ty.flip=ty.flip?0:1;b=bake(g,ty)}if(!ty.gait.legs){const r=GAIT148.rig(g,b.M);if(r){ty.gait.legs=r.legs;ty.gait.auto=1}else ty.gait=null}}catch(e){console.warn('GAIT148',ty.f,e);ty.gait=null}}else ty.gait=null;ty.len=b.len;ty.g=g;ty.M=b.M;ty.cl=clips(ty,g);ty.pool=[];ty.im=b.out.map(([ge,mm])=>{const im=new THREE.InstancedMesh(ge,mm,CAP);im.count=0;im.frustumCulled=false;im.castShadow=true;im.receiveShadow=true;scene.add(im);return im});ty.st=2;console.log('MODS animali pronti',ty.f,ty.fb?'(riserva)':'')}catch(e){console.warn('animali',ty.f,e);ty.st=3}}
  async function prepDog(){if(dogM)return;dogM=1;try{const g=await ldM('cane');const o0=g.scene,kill=[];o0.traverse(m=>{if(m.isLight||m.isCamera||(m.isMesh&&!m.isSkinnedMesh&&/grass|plane/i.test(m.name+(m.parent?m.parent.name:''))))kill.push(m)});kill.forEach(m=>m.parent&&m.parent.remove(m));
    const bb=new THREE.Box3().setFromObject(o0),s=.6/Math.max(.01,bb.max.y-bb.min.y);dogM={g,s,y:-bb.min.y*s}}catch(e){dogM=2}}
  /* un gruppo attivo: animali [x,z,yaw,stato,tempo,morto,fuga] */
@@ -11534,15 +11609,16 @@ const ANI143=(()=>{let D=null,ld=0,ok=0;const C=new Map(),CS=1000,ACT=new Map(),
     for(const p of L.slice(0,NA)){const a=p[2];if(!a.c){const ty=TY[p[1].ty];a.c=clone(ty);a.c.used=1;a.c.w.visible=true;a.k=ty.h*(.9+((p[3]*7)%5)*.05);a.c.w.scale.setScalar(a.k)}}
     lastF=0}
    /* movimento solo per chi ha le zampe animate: brucano, ogni tanto due passi; scappano se arrivi correndo o spari */
-   for(const G of ACT.values()){const[gx,gz,,,rad]=G.g,ty=TY[G.ty],sp=ty.v,cw=!!(ty.cl&&ty.cl.walk);for(const a of G.A){const c=a.c;if(!c)continue;
+   for(const G of ACT.values()){const[gx,gz,,,rad]=G.g,ty=TY[G.ty],sp=ty.v,cw=!!(ty.cl&&ty.cl.walk)||!!ty.gait;for(const a of G.A){const c=a.c;if(!c)continue;
      if(a.dead){if(ty.cl.death){if(!a.dd){a.dd=1;play(c,'death',1)}}c.w.position.set(a.x,gy(a.x,a.z),a.z);c.mx.update(dt);continue}
      let v=0;const dpx=a.x-px,dpz=a.z-pz,dp=Math.hypot(dpx,dpz);
-     if(cw&&(dp<(pv>3?14:5)||a.run>0)){if(dp<14)a.run=Math.max(a.run,2.5);a.run-=dt;const ang=Math.atan2(dpx,dpz);a.yaw+=(((ang-a.yaw+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI)*Math.min(1,dt*4);v=ty.cl.run?sp:Math.min(sp,2.2)}
+     if(cw&&(dp<(pv>3?14:5)||a.run>0)){if(dp<14)a.run=Math.max(a.run,2.5);a.run-=dt;const ang=Math.atan2(dpx,dpz);a.yaw+=(((ang-a.yaw+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI)*Math.min(1,dt*4);v=ty.cl.run?sp:Math.min(sp,ty.gait?3:2.2)}
      else if(cw){a.t-=dt;if(a.t<0){if(a.tx){a.tx=0;a.t=5+rnd(a.x)*12}else{const q=rnd(a.x*.37+a.z),r=Math.sqrt(rnd(a.z*.91+now))*rad;a.tx=gx+Math.cos(q*6.283)*r;a.tz=gz+Math.sin(q*6.283)*r;a.t=10}}
       if(a.tx){const dx=a.tx-a.x,dz=a.tz-a.z,d=Math.hypot(dx,dz);if(d<.6){a.tx=0;a.t=4+rnd(a.z)*10}else{const ang=Math.atan2(dx,dz);a.yaw+=(((ang-a.yaw+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI)*Math.min(1,dt*1.2);v=.7}}}
      a.x+=Math.sin(a.yaw)*v*dt;a.z+=Math.cos(a.yaw)*v*dt;
-     if(v>2.4&&ty.cl.run)play(c,'run',1);else if(v>0)play(c,'walk',v/.8*(a.k?1/a.k:1));else if(!play(c,(a.e??(a.e=rnd(a.x+a.z)<.5))&&ty.cl.eat?'eat':'idle',1))play(c,'walk',0);
-     c.w.position.set(a.x,gy(a.x,a.z),a.z);c.w.rotation.y=a.yaw;c.mx.update(dt)}}
+     if(c.G&&!ty.cl.walk){/* v148: zampe mosse da GAIT148; mentre cammina l'animazione da fermo (brucare) sfuma */if(v>0){if(c.cur){c.cur.fadeOut(.35);c.cur=null}}else play(c,(a.e??(a.e=rnd(a.x+a.z)<.5))&&ty.cl.eat?'eat':'idle',1)}
+     else if(v>2.4&&ty.cl.run)play(c,'run',1);else if(v>0)play(c,'walk',v/.8*(a.k?1/a.k:1));else if(!play(c,(a.e??(a.e=rnd(a.x+a.z)<.5))&&ty.cl.eat?'eat':'idle',1))play(c,'walk',0);
+     c.mx.update(dt);const yo=c.G&&!ty.cl.walk?GAIT148.step(c.G,v,a.k||ty.h,dt):0;c.w.position.set(a.x,gy(a.x,a.z)+yo,a.z);c.w.rotation.y=a.yaw}}
    /* copie a istanze: solo quando cambia qualcosa (nessuna scivolata) */
    if(lastF===0){lastF=now;const Dm=new THREE.Object3D(),cnt=TY.map(()=>0);
     for(const G of ACT.values()){const ty=TY[G.ty];if(ty.st!==2)continue;const hs=ty.h;for(let i=0;i<G.A.length;i++){const a=G.A[i];if(cnt[G.ty]>=CAP)break;const k=hs*(.9+((i*7)%5)*.05);
@@ -11890,7 +11966,7 @@ window.FX137={on:()=>ON,st,strike,rain:v=>{window.W113=v},rb:()=>{rbT=130}};
    A OGNI VERSIONE: alzare V e AGGIUNGERE voci in L con v = numero di versione (non cancellare le vecchie).
    x,z = dove ti mette; lx,lz = verso dove guardi; p:1 = a piedi; ver:1 = da verificare. */
 const NOV115=(()=>{
- const V=147;
+ const V=148;
  const L=[
   {v:116,n:'Cortile interno (Via Fratelli Bandiera)',d:'Isolato rifatto con case separate e cortile col pavimento vero dalla foto (prato, piastrelle, terra)',x:2148,z:2127,lx:2160,lz:2110,p:1,ver:1},
   {v:116,n:'Cortile interno (Via Mons. Cogoni)',d:'Isolato rifatto con il cortile vero',x:1277,z:2393,lx:1290,lz:2380,p:1,ver:1},
@@ -11949,6 +12025,9 @@ const NOV115=(()=>{
  {v:146,n:'Volpi',d:'Volpi nella macchia e nelle campagne di tutta la Sardegna',x:6148,z:2251,lx:6148,lz:2236,p:1,ver:1},
  {v:147,n:'Persone col viso vivo',d:'Sei passanti nuovi (Microsoft Rocketbox) che sbattono le palpebre, muovono gli occhi, sorridono e cambiano espressione; al telefono o in coppia muovono la bocca, se hanno paura spalancano occhi e bocca',noVai:1,ver:1},
  {v:147,n:'Niente più personaggi a forme geometriche',d:'Manuel, Sophia e i passanti veri arrivano subito; le persone nuove col viso si aggiungono dopo, mentre giochi. I personaggi geometrici non si vedono più, neanche durante il caricamento',noVai:1,ver:1},
+ {v:148,n:'Le pecore camminano davvero',d:'Le pecore non stanno più ferme: muovono le zampe una alla volta, piegano il ginocchio, il piede resta fermo a terra mentre avanzano; se arrivi di corsa scappano al trotto',x:2854,z:-226,lx:2854,lz:-246,p:1,ver:1},
+ {v:148,n:'Anche mucche e cervi camminano',d:'Mucche e cervi sardi ora fanno due passi mentre pascolano e scappano se ti avvicini di corsa, con il passo vero di un quadrupede',x:29138,z:-7517,lx:29138,lz:-7547,p:1,ver:1},
+ {v:148,n:'Gioco riordinato dentro',d:'Il gioco è stato rimesso in ordine al suo interno (prima era fatto di più di 140 modifiche una sopra l\u2019altra): non cambia niente da vedere, ma le prossime versioni si fanno prima e gli errori vecchi non tornano; a ogni versione ora parte un controllo automatico',noVai:1},
   {v:143,n:'Sardegna nord: Sassari',d:'La mappa ora copre TUTTA la Sardegna: Sassari, il Logudoro, la Nurra, la Gallura',x:-46903,z:-161914,lx:-46803,lz:-161914,ver:1},
   {v:143,n:'Alghero',d:'Alghero e la Riviera del Corallo',x:-67310,z:-143349,lx:-67210,lz:-143349,ver:1},
   {v:143,n:'Olbia',d:'Olbia, il porto dei traghetti e il golfo',x:34205,z:-183775,lx:34305,lz:-183775,ver:1},
