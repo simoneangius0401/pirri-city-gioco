@@ -6817,7 +6817,7 @@ const MONDO82=(()=>{
    if(!fast&&t.state==2&&t.lod!=lod&&t.data&&(lod==1||d>RNEAR+250)){t.state=1;nBusy++;wk.postMessage({t:'lod',d:t.data,lod})}}}
  return{get idx(){return IDX},get mode(){return MODE},ST,h,inB,init,tick,get n(){return TL.size},get busy(){return nBusy},get ok(){return !!IDX},TL}})();
 
-const H00=(x,z)=>{const d=Math.max(-x,x-WX,-z,z-WZ);const e0=EL(x,z);if(d<=0)return e0;if(MONDO82.inB(x,z)){const t=MONDO82.h(x,z);if(d>60&&window.BR149){/* v149: sopra un ponte, se il giocatore e' gia' all'altezza del piano */const bq=BR149(x,z);if(bq!=null&&bq>t&&(window.PY149||0)>bq-2)return bq}return (d<60?e0+(t-e0)*d/60:t)+(d>40&&window.SW135?SW135(x,z):0)}if(d<50)return e0;const f=cl((d-50)/550,0,1),s=f*f*(3-2*f);return Math.max(-.25,e0+(LAND74.real(x,z)-e0)*s)};
+const H00=(x,z)=>{const d=Math.max(-x,x-WX,-z,z-WZ);const e0=EL(x,z);if(d<=0)return e0;if(MONDO82.inB(x,z)){const t=MONDO82.h(x,z);if(d>60&&window.BR149){/* v149: sopra un ponte, se il giocatore e' gia' all'altezza del piano */const bq=BR149(x,z);if(bq!=null&&bq>t&&(window.PY149||0)>bq-2)return bq}if(window.PIA151&&Math.abs(x-2200)<60&&Math.abs(z-5900)<60){/* v151: sagrato e scalinata di Bonaria */const pq=PIA151(x,z);if(pq!=null&&pq>t)return pq}return (d<60?e0+(t-e0)*d/60:t)+(d>40&&window.SW135?SW135(x,z):0)}if(d<50)return e0;const f=cl((d-50)/550,0,1),s=f*f*(3-2*f);return Math.max(-.25,e0+(LAND74.real(x,z)-e0)*s)};
 
 let HYv=0;const FT=[];
 /* ===== v33: Asse Mediano sopraelevato =====
@@ -11517,6 +11517,88 @@ const NUR150=(()=>{const D=NUR150D,CX=D.c[0],CZ=D.c[1];let st=0,grp=null;
   try{build();st=3}catch(e){console.warn('NUR150',e);st=2}}
  return{tick,get ok(){return st==3},get m(){return grp},c:[CX-28,CZ-28]}})();
 
+/* v151: BASILICA E SANTUARIO DI BONARIA (Cagliari) al posto della chiesa generica.
+   VERO (OpenStreetMap, way 277183941): posizione, orientamento, larghezza del fronte (30,5 m, Santuario a sinistra + Basilica a destra guardando la facciata) e profondita' del corpo (~41 m);
+   posizione della Torre aragonese (nodo OSM). DALLA FOTO libera (Wikimedia Commons 153143629, CC BY-SA 4.0): facciata in calcare chiaro a due ordini con tre grandi arcate tra lesene binate,
+   balaustra, ordine superiore con finestra e timpano; cupola scura su tamburo con finestre e lanterna; navata con tetto di coppi rossi e cupolette sulle cappelle laterali;
+   Santuario piu' basso in pietra con rosone e tetto a capanna; scalinata davanti. STIMATO dalla foto, non misurato: tutte le altezze (facciata ~22 m, cupola ~35 m, Santuario ~12 m, torre ~16 m)
+   e la divisione del fronte (Santuario ~11 m, Basilica ~19,5 m). Si costruisce quando il quadrato del mondo grande sotto e' caricato. */
+(window.EXC150=window.EXC150||[]).push(2222,5863,32);
+const BON151=(()=>{const BX=2222-31.7,BZ=5863+19.6,AX=2222-12.2,AZ=5863+43.0,FW=Math.hypot(AX-BX,AZ-BZ),UX=(AX-BX)/FW,UZ=(AZ-BZ)/FW,VX=UZ,VZ=-UX;/* u lungo il fronte (da sinistra), v verso il fondo */
+ let st=0,grp=null;const gy=(x,z)=>{try{return H(x,z)}catch(e){return 0}};const wx=(u,v)=>BX+UX*u+VX*v,wz=(u,v)=>BZ+UZ*u+VZ*v;
+ const hs=n=>{const v=Math.sin(n*127.1+311.7)*43758.5453;return v-Math.floor(v)};
+ function texPietra(){const c=document.createElement('canvas');c.width=c.height=512;const g=c.getContext('2d');g.fillStyle='#b9b2a2';g.fillRect(0,0,512,512);
+  for(let r=0;r<8;r++){const y=r*64;let x=-hs(r*3.3)*90,k=0;while(x<512){const w=90+hs(r*7+k*3.1)*80,v=214+hs(r*11+k*5)*30;g.fillStyle='rgb('+(v|0)+','+(v*.975|0)+','+(v*.92|0)+')';g.fillRect(x+1.5,y+1.5,w-3,61);
+    for(let i=0;i<14;i++){g.fillStyle=hs(i+k*13+r)<.5?'rgba(255,255,255,.10)':'rgba(90,70,40,.07)';g.fillRect(x+hs(i*3+k)*w,y+hs(i*7+r)*60,6+hs(i)*16,2+hs(i*2)*5)}x+=w;k++}}
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;t.encoding=THREE.sRGBEncoding;return t}
+ function texCoppi(){const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');g.fillStyle='#7a5040';g.fillRect(0,0,256,256);
+  for(let r=0;r<8;r++)for(let k=0;k<8;k++){const v=150+hs(r*5+k*9)*50;const gr=g.createLinearGradient(k*32,0,k*32+32,0);gr.addColorStop(0,'rgb('+(v*.6|0)+','+(v*.36|0)+','+(v*.28|0)+')');gr.addColorStop(.5,'rgb('+(v*.95|0)+','+(v*.58|0)+','+(v*.44|0)+')');gr.addColorStop(1,'rgb('+(v*.6|0)+','+(v*.36|0)+','+(v*.28|0)+')');g.fillStyle=gr;g.fillRect(k*32,r*32,32,31)}
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;t.encoding=THREE.sRGBEncoding;return t}
+ function build(){/* quota del pavimento: la piu' alta del terreno lungo il fronte (il sagrato e' in piano) */
+  let y0=-1e9,ymin=1e9;for(let u=0;u<=FW;u+=3)for(const v of[0,20,42]){const h=gy(wx(u,v),wz(u,v));if(v==0&&h>y0)y0=h;if(h<ymin)ymin=h}y0+=.25;const DN=y0-ymin+1.2;
+  const B={pi:{p:[],n:[],u:[],c:[]},co:{p:[],n:[],u:[],c:[]},li:{p:[],n:[],u:[],c:[]}};
+  /* matrice locale (u, y, -v) -> mondo, destrorsa */
+  const M=new THREE.Matrix4().set(UX,0,-VX,BX, 0,1,0,y0, UZ,0,-VZ,BZ, 0,0,0,1),N3=new THREE.Matrix3().setFromMatrix4(M),v=new THREE.Vector3(),nn=new THREE.Vector3();
+  const add=(buf,geo,col,S)=>{const g=geo.index?geo.toNonIndexed():geo,P=g.attributes.position,Nn=g.attributes.normal,r=((col>>16)&255)/255,gg=((col>>8)&255)/255,b=(col&255)/255,T=S||4;
+   for(let i=0;i<P.count;i++){const x=P.getX(i),y=P.getY(i),z=P.getZ(i),ax=Math.abs(Nn.getX(i)),ay=Math.abs(Nn.getY(i));buf.u.push(ay>.6?x/T:ax>.6?z/T:x/T,ay>.6?z/T:y/T);
+    v.set(x,y,z).applyMatrix4(M);buf.p.push(v.x,v.y,v.z);nn.set(Nn.getX(i),Nn.getY(i),Nn.getZ(i)).applyMatrix3(N3).normalize();buf.n.push(nn.x,nn.y,nn.z);buf.c.push(r,gg,b)}g.dispose();if(g!==geo)geo.dispose()};
+  const box=(buf,u0,u1,ya,yb,v0,v1,col,S)=>{const g=new THREE.BoxGeometry(u1-u0,yb-ya,v1-v0);g.translate((u0+u1)/2,(ya+yb)/2,-(v0+v1)/2);add(buf,g,col,S)};
+  /* tetto a capanna con il colmo lungo v: due falde tra u0 e u1 */
+  const capanna=(buf,u0,u1,v0,v1,ye,yr,col)=>{const um=(u0+u1)/2,g=new THREE.BufferGeometry(),q=[[u0,ye,-v0],[um,yr,-v0],[um,yr,-v1],[u0,ye,-v1],[um,yr,-v0],[u1,ye,-v0],[u1,ye,-v1],[um,yr,-v1]],p=[];
+   for(const f of[[0,3,2,1],[4,7,6,5]])for(const i of[f[0],f[1],f[2],f[0],f[2],f[3]])p.push(...q[i]);g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));g.computeVertexNormals();add(buf,g,col,1.6)};
+  /* parete triangolare (timpano) sul piano v */
+  const timpano=(buf,u0,u1,ya,yt,vv,col)=>{const g=new THREE.BufferGeometry(),um=(u0+u1)/2;g.setAttribute('position',new THREE.Float32BufferAttribute([u0,ya,-vv,u1,ya,-vv,um,yt,-vv],3));g.computeVertexNormals();add(buf,g,col)};
+  /* pannello ad arco (porta, finestra) sul piano del fronte */
+  const arco=(buf,uc,w,ya,ys,vv,col)=>{const s=new THREE.Shape();s.moveTo(-w/2,ya);s.lineTo(w/2,ya);s.lineTo(w/2,ys);s.absarc(0,ys,w/2,0,Math.PI,false);s.lineTo(-w/2,ya);const g=new THREE.ShapeGeometry(s,10);g.translate(uc,0,-vv);add(buf,g,col)};
+  const cornice=(buf,uc,w,ys,vv,col)=>{const g=new THREE.RingGeometry(w/2,w/2+.38,14,1,0,Math.PI);g.translate(uc,ys,-vv);add(buf,g,col)};
+  const PIE=0xf3ecdc,PIE2=0xe2d8c2,MURO=0xcdbf9f,SCURO=0x2a221c,VETRO=0x39424c,COP=0xffffff,PIOMBO=0x4a4c52;
+  const S0=11,S1=FW;/* Santuario 0..11, Basilica 11..30,5 */
+  /* --- zoccolo fino al terreno piu' basso --- */
+  box(B.pi,0,FW,-DN,0,0,42,0xb5a98f);
+  /* --- SANTUARIO (sinistra): pietra, tetto a capanna, rosone, porta ad arco --- */
+  box(B.pi,0,S0,0,9,0,41,MURO);timpano(B.pi,0,S0,9,12,0,MURO);timpano(B.pi,0,S0,9,12,41,MURO);capanna(B.co,-.3,S0+.3,-.4,41.4,9,12.15,COP);
+  arco(B.li,S0/2-1.5,1.9,0,2.5,-.04,SCURO);cornice(B.pi,S0/2-1.5,1.9,2.5,-.06,PIE);{const g=new THREE.CircleGeometry(1.15,20);g.translate(S0/2,7.2,.05);add(B.li,g,VETRO);const r=new THREE.RingGeometry(1.15,1.5,20);r.translate(S0/2,7.2,.07);add(B.pi,r,PIE)}
+  /* --- BASILICA: navate laterali basse, navata centrale alta, coppi --- */
+  box(B.pi,S0,S1,0,10.5,2.5,42,PIE2);box(B.pi,S0+4.6,S1-4.6,10.5,16,2.5,42,PIE2);capanna(B.co,S0+4.3,S1-4.3,2.5,42.3,16,18.6,COP);
+  for(const sd of[0,1]){const u0=sd?S1-4.6:S0,u1=sd?S1:S0+4.6,g=new THREE.BufferGeometry(),hi=sd?u0:u1,lo=sd?u1:u0;
+   g.setAttribute('position',new THREE.Float32BufferAttribute([lo,10.5,-2.5,hi,12.4,-2.5,hi,12.4,-42,lo,10.5,-2.5,hi,12.4,-42,lo,10.5,-42],3));g.computeVertexNormals();if(g.attributes.normal.getY(0)<0){const p=g.attributes.position.array;for(let i=0;i<p.length;i+=9){for(let k=0;k<3;k++){const t=p[i+3+k];p[i+3+k]=p[i+6+k];p[i+6+k]=t}}g.computeVertexNormals()}add(B.co,g,COP,1.6);
+   /* cupolette delle cappelle (4 per lato) e finestre alte della navata */
+   for(let k=0;k<4;k++){const uc=(u0+u1)/2,vc=9+k*6.6,d=new THREE.CylinderGeometry(1.25,1.25,1.3,8);d.translate(uc,12.1,-vc);add(B.pi,d,PIE);const c=new THREE.SphereGeometry(1.35,10,6,0,6.2832,0,1.5708);c.translate(uc,12.7,-vc);add(B.co,c,0xd9b0a0,1.2);
+    const w=new THREE.PlaneGeometry(1.1,2.4);w.rotateY(sd?Math.PI/2:-Math.PI/2);w.translate(sd?S1-4.6+.03:S0+4.6-.03,13.6,-vc);add(B.li,w,VETRO)}}
+  /* --- FACCIATA della Basilica: calcare, due ordini --- */
+  const f0=S0,fw=S1-S0,fc=f0+fw/2;box(B.pi,f0,S1,0,11.3,-.3,2.6,PIE);
+  for(const s of[.25,1.65,5.35,6.75,11.65,13.05,16.75,18.15])box(B.pi,f0+s,f0+s+1.05,.9,10.2,-.85,-.3,PIE);/* lesene binate */
+  box(B.pi,f0-.15,S1+.15,0,.9,-1.0,-.3,PIE2);box(B.pi,f0-.3,S1+.3,10.2,11.3,-1.15,-.3,PIE);/* basamento e trabeazione */
+  for(const[s,w,ys]of[[3.5,2.7,6.2],[fw/2,3.3,6.8],[fw-3.5,2.7,6.2]]){arco(B.li,f0+s,w,.9,ys,-.33,SCURO);cornice(B.pi,f0+s,w,ys,-.36,PIE2)}
+  for(const[a,b]of[[f0,f0+5.2],[S1-5.2,S1]]){box(B.pi,a,b,11.3,11.5,-1.0,-.4,PIE);for(let q=a+.3;q<b-.2;q+=.55)box(B.pi,q,q+.22,11.5,12.2,-.85,-.6,PIE);box(B.pi,a,b,12.2,12.4,-1.0,-.4,PIE)}/* balaustre */
+  const a0=fc-4.9,a1=fc+4.9;box(B.pi,a0,a1,11.3,18.6,-.3,2.0,PIE);for(const s of[a0+.2,a0+1.5,a1-2.5,a1-1.2])box(B.pi,s,s+1.0,11.5,17.6,-.8,-.3,PIE);
+  box(B.pi,a0-.25,a1+.25,17.6,18.6,-1.05,-.3,PIE);timpano(B.pi,a0-.45,a1+.45,18.6,21.9,-.75,PIE);box(B.pi,a0-.45,a1+.45,18.6,18.85,-1.1,-.3,PIE);
+  arco(B.li,fc,1.9,12.6,15.4,-.33,VETRO);cornice(B.pi,fc,1.9,15.4,-.36,PIE2);timpano(B.pi,fc-1.7,fc+1.7,16.7,17.5,-.5,PIE2);box(B.pi,fc-.12,fc+.12,21.9,23.6,-.75,-.55,0x555555);box(B.pi,fc-.6,fc+.6,22.8,23.0,-.75,-.55,0x555555);
+  for(const sd of[-1,1]){const g=new THREE.BufferGeometry(),ua=sd<0?a0:a1,ub=sd<0?f0+.4:S1-.4;g.setAttribute('position',new THREE.Float32BufferAttribute(sd<0?[ub,11.3,.2,ua,11.3,.2,ua,16.4,.2]:[ua,11.3,.2,ub,11.3,.2,ua,16.4,.2],3));g.computeVertexNormals();add(B.pi,g,PIE2)}/* raccordi laterali */
+  /* --- CUPOLA: tamburo ottagonale con finestre, calotta scura, lanterna --- */
+  const cu=fc,cv=33;{const t=new THREE.CylinderGeometry(5.1,5.1,8,8);t.rotateY(Math.PI/8);t.translate(cu,20,-cv);add(B.pi,t,PIE);const r=new THREE.CylinderGeometry(5.45,5.45,.6,8);r.rotateY(Math.PI/8);r.translate(cu,24.2,-cv);add(B.pi,r,PIE2);
+   for(let k=0;k<8;k++){const a=k*Math.PI/4,w=new THREE.PlaneGeometry(1.3,3.2);w.translate(0,20.6,4.76);w.rotateY(a);w.translate(cu,0,-cv);add(B.li,w,VETRO)}
+   const d=new THREE.SphereGeometry(5.0,20,10,0,6.2832,0,1.5708);d.scale(1,1.12,1);d.translate(cu,24.5,-cv);add(B.li,d,PIOMBO);
+   const l=new THREE.CylinderGeometry(1.25,1.25,3.2,8);l.translate(cu,31.5,-cv);add(B.pi,l,PIE);const c=new THREE.ConeGeometry(1.5,1.8,8);c.translate(cu,34,-cv);add(B.li,c,PIOMBO);box(B.li,cu-.08,cu+.08,34.8,36.3,cv-.08,cv+.08,0x333333);box(B.li,cu-.45,cu+.45,35.6,35.75,cv-.08,cv+.08,0x333333)}
+  /* --- TORRE ARAGONESE (posizione dal nodo OSM): torre quadrata in pietra dietro il Santuario --- */
+  {const dx=2214-BX,dz=5856-BZ,tu=dx*UX+dz*UZ,tv=dx*VX+dz*VZ;box(B.pi,tu-3,tu+3,-DN,16,tv-3,tv+3,0xb09f82);for(let k=0;k<4;k++){box(B.pi,tu-3+k*1.6,tu-3+k*1.6+.9,16,16.9,tv-3,tv-2.5,0xb09f82);box(B.pi,tu-3+k*1.6,tu-3+k*1.6+.9,16,16.9,tv+2.5,tv+3,0xb09f82)}}
+  /* --- SAGRATO e SCALINATA: piano davanti alla facciata e gradini che scendono finche' incontrano il terreno --- */
+  box(B.pi,-1,FW+1,-DN,0,-9,0,0xd8d0bd,6);let n=0;for(let k=1;k<=70;k++){const vv=-9-k*.36,yy=-k*.16,um=FW/2,t=gy(wx(um,vv),wz(um,vv))-y0;if(yy<t-.05)break;box(B.pi,-1,FW+1,yy-1.4,yy,vv,vv+.36,0xdcd5c4,6);n++}
+  const mk=(b,mat)=>{const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(b.p,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(b.n,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(b.u,2));g.setAttribute('color',new THREE.Float32BufferAttribute(b.c,3));const m=new THREE.Mesh(g,mat);m.castShadow=true;m.receiveShadow=true;m.frustumCulled=false;mat.userData.noDet=1;return m};
+  grp=new THREE.Group();grp.add(mk(B.pi,new THREE.MeshStandardMaterial({map:texPietra(),vertexColors:true,roughness:.9,metalness:0,side:THREE.DoubleSide})));
+  grp.add(mk(B.co,new THREE.MeshStandardMaterial({map:texCoppi(),vertexColors:true,roughness:.85,metalness:0,side:THREE.DoubleSide})));
+  grp.add(mk(B.li,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.55,metalness:.15,side:THREE.DoubleSide})));scene.add(grp);
+  /* urti: perimetro del corpo (fronte, lati, fondo) */
+  const ur=(x,z,r,h)=>{const k=Math.floor(x/60)+','+Math.floor(z/60);try{(G[k]||(G[k]=[])).push({x0:x-r,z0:z-r,x1:x+r,z1:z+r,h,ev:1})}catch(e){}};
+  const ul=(u0,v0,u1,v1)=>{const L=Math.hypot(u1-u0,v1-v0),m=Math.ceil(L/.9);for(let i=0;i<=m;i++){const u=u0+(u1-u0)*i/m,vv=v0+(v1-v0)*i/m;ur(wx(u,vv),wz(u,vv),.6,y0+10)}};
+  ul(0,0,FW,0);ul(FW,0,FW,42);ul(FW,42,0,42);ul(0,42,0,0);
+  /* sagrato e gradini percorribili: quota del piano sopra il terreno (H00 la usa: nessuno passa sotto) */
+  window.PIA151=(x,z)=>{const dx=x-BX,dz=z-BZ,u=dx*UX+dz*UZ;if(u<-1||u>FW+1)return null;const vv=dx*VX+dz*VZ;if(vv>0||vv<-9-n*.36)return null;return y0+(vv>-9?0:-Math.ceil((-9-vv)/.36)*.16)};
+  console.log('MODS Bonaria costruita: triangoli',(B.pi.p.length+B.co.p.length+B.li.p.length)/9,'gradini',n,'pavimento',y0.toFixed(1))}
+ function tick(){if(st==2||typeof cam==='undefined'||typeof MONDO82==='undefined'||!MONDO82.TL)return;const d=Math.hypot(cam.position.x-2222,cam.position.z-5863);if(grp)grp.visible=d<3500;if(st||d>1600)return;
+  const t=MONDO82.TL.get(Math.floor(2222/500)+'_'+Math.floor(5863/500));if(!t||!t.ground)return;st=1;try{build();st=3}catch(e){console.warn('BON151',e);st=2}}
+ return{tick,get ok(){return st==3},get m(){return grp}}})();
+
 /* ===== v143: NUVOLE VERE (Simone 7/11, punto 20) =====
    Cumuli fatti di tanti sbuffi morbidi (tessitura a rumore fatta a mano), fermi nel cielo fra 900 e 1700 m e spinti piano dal vento,
    illuminati dal sole (sopra chiari, sotto grigi), rosati al tramonto, scuri e piu' fitti con la pioggia. Su un'area di 24 km attorno a te
@@ -12089,7 +12171,7 @@ window.FX137={on:()=>ON,st,strike,rain:v=>{window.W113=v},rb:()=>{rbT=130}};
    A OGNI VERSIONE: alzare V e AGGIUNGERE voci in L con v = numero di versione (non cancellare le vecchie).
    x,z = dove ti mette; lx,lz = verso dove guardi; p:1 = a piedi; ver:1 = da verificare. */
 const NOV115=(()=>{
- const V=150;
+ const V=151;
  const L=[
   {v:116,n:'Cortile interno (Via Fratelli Bandiera)',d:'Isolato rifatto con case separate e cortile col pavimento vero dalla foto (prato, piastrelle, terra)',x:2148,z:2127,lx:2160,lz:2110,p:1,ver:1},
   {v:116,n:'Cortile interno (Via Mons. Cogoni)',d:'Isolato rifatto con il cortile vero',x:1277,z:2393,lx:1290,lz:2380,p:1,ver:1},
@@ -12155,6 +12237,7 @@ const NOV115=(()=>{
  {v:149,n:'Strade appoggiate al terreno',d:'Sui pendii la strada segue il terreno anche di traverso: niente più un bordo sospeso e uno sotto terra, e le auto ferme ai lati non sembrano più sollevate',noVai:1,ver:1},
  {v:149,n:'Ponti veri',d:'Fuori Pirri i ponti hanno parapetti e fianco, e ci passi sopra con il mezzo invece di finire nel fosso sotto',noVai:1,ver:1},
  {v:150,n:'Su Nuraxi di Barumini vero',d:'Il nuraghe di Barumini è ricostruito sulla pianta vera: bastione a quattro lobi, torre centrale alta 14 metri, le sei torri esterne e i muri delle capanne del villaggio, in basalto scuro. Prima c\u2019erano case finte e un nuraghe generico',x:-9318,z:-49052,lx:-9405,lz:-49130,ver:1},
+ {v:151,n:'Basilica di Bonaria',d:'La Basilica e il Santuario di Bonaria al posto della chiesa generica: facciata chiara a due ordini con le tre arcate e il timpano, cupola scura con lanterna, tetti di coppi con le cupolette, Santuario col rosone, Torre aragonese, sagrato e scalinata su cui si sale',x:2172,z:5932,lx:2204,lz:5890,ver:1},
   {v:143,n:'Sardegna nord: Sassari',d:'La mappa ora copre TUTTA la Sardegna: Sassari, il Logudoro, la Nurra, la Gallura',x:-46903,z:-161914,lx:-46803,lz:-161914,ver:1},
   {v:143,n:'Alghero',d:'Alghero e la Riviera del Corallo',x:-67310,z:-143349,lx:-67210,lz:-143349,ver:1},
   {v:143,n:'Olbia',d:'Olbia, il porto dei traghetti e il golfo',x:34205,z:-183775,lx:34305,lz:-183775,ver:1},
@@ -12263,7 +12346,7 @@ const STEAL110=(()=>{
  return{take,vespa}})();
 
 
-GULL87.init();let lt86=0;try{BUS88.init();LUCI88.init();PIG88.init();PARK88.init();PED88.initDogs();PED88.initCats();FEN88.init();OFF88.init()}catch(e88){console.warn('v88',e88)}function loop(now){requestAnimationFrame(loop);try{const d86=Math.min(.1,Math.max(.001,(now-(lt86||now))/1000));lt86=now;HERO86.tick(now/1000,d86);HERO86.lambo();GULL87.tick(now/1000,d86)}catch(e){}{const t88=now/1000,d88=Math.min(.1,Math.max(.001,(now-(window.lt88||now))/1000));window.lt88=now;window.gt88=(window.gt88||0)+d88;for(const f of[()=>{if(!ANIM88.ok)ANIM88.init()},()=>BUS88.tick(t88,d88),()=>PED88.tick(t88,d88),()=>PIG88.tick(t88,d88),()=>PARK88.tick(t88),()=>DANNI88.tick(t88,d88),()=>LUCI88.tick(t88,d88),()=>VES88.tick(t88,d88),()=>FEN88.tick(t88,d88),()=>MEZ90.tick(t88,d88),()=>MET90.tick(t88,d88),()=>SOC90.tick(t88,d88),()=>ANI90.tick(t88,d88),()=>GOM90.tick(t88,d88),()=>LSND90.tick(),()=>STA91.tick(t88,d88),()=>POE91.tick(t88,d88),()=>TRN91.tick(t88,d88),()=>POR91.tick(t88,d88),()=>MER91.tick(t88),()=>FPS94.tick(t88),()=>MV102.tick(t88,d88),()=>LOC102.tick(),()=>VEST102.tick(),()=>ACQ103.tick(t88,d88),()=>MON103.tick(),()=>CAS103.tick(),()=>NEG104.tick(t88),()=>MARE104.tick(t88),()=>GF104.tick(t88,d88),()=>SND104.tick(t88,d88),()=>JUMP142.tick(),()=>ERO107.tick(),()=>SND107.tick(),()=>POL107.tick(t88,d88),()=>SW107.tick(t88,d88),()=>WAT107.tick(t88),()=>ANF113.build(),()=>EXT113.tick(t88,d88),()=>COR115.tick(),()=>PV117.tick(t88,d88),()=>KB119.tick(),()=>URT121.tick(),()=>ENV124.tick(),()=>ARR125.tick(),()=>VER126.tick(),()=>FIN127.tick(),()=>DET129.tick(),()=>ING141.tick(),()=>S142.tick(),()=>GR143.tick(),()=>PAE143.tick(),()=>NUR150.tick(),()=>CLD143.tick(),()=>ANI143.tick(t88,d88),()=>SUO143.tick(),()=>TRN143.tick(t88,d88),()=>NAV143.tick(t88,d88),()=>FACE147.tick(),()=>TAV143.tick(t88),()=>REF143.tick(),()=>SH143.tick(),()=>LIFE142.tick(),()=>JT142.tick(),()=>V131.tick(),()=>ALB121.tick(t88),()=>NOV115.tick(),()=>NOMI114.tick(t88),()=>SEG114.tick(),()=>PORTO108.tick()])try{f()}catch(e88){if(!window.e88n){window.e88n=1;console.warn('v88 tick',e88)}}}try{CAR83.tick(now/1000)}catch(e){}try{MONDO82.tick(now/1000);CHUNK82.tick(now/1000)}catch(e){}const dt=Math.max(.001,Math.min(.05,(now-last)/1000));last=now;if(!over&&!pz&&!inside)step(dt,now/1000);if(!pz&&!inside)gfStep(dt,now/1000);if(inside&&!pz)inStepS(dt,now/1000);venStepS(dt,now/1000);{const sg=QL.sg;sunG.visible=sg>0&&sunD.position.y>cam.position.y-20;moonG.visible=sg>0&&moonD.position.y>cam.position.y-20;if(sg>0){sunG.position.copy(sunD.position);moonG.position.copy(moonD.position);sunG.scale.setScalar(70*sg);moonG.scale.setScalar(45*sg);sunG.material.opacity=.35+.1*sg;moonG.material.opacity=.3}}if(wp>0){const hh=Math.min(5,Math.ceil(wp/2));bribeC=Math.max(100,hh*150);const tx='⭐ Paga e sparisci $'+bribeC;if(gwT!==tx){gwT=tx;$('gw').textContent=tx}if(gwD!=='block'){gwD='block';$('gw').style.display='block'}}else if(gwD!=='none'){gwD='none';$('gw').style.display='none'}
+GULL87.init();let lt86=0;try{BUS88.init();LUCI88.init();PIG88.init();PARK88.init();PED88.initDogs();PED88.initCats();FEN88.init();OFF88.init()}catch(e88){console.warn('v88',e88)}function loop(now){requestAnimationFrame(loop);try{const d86=Math.min(.1,Math.max(.001,(now-(lt86||now))/1000));lt86=now;HERO86.tick(now/1000,d86);HERO86.lambo();GULL87.tick(now/1000,d86)}catch(e){}{const t88=now/1000,d88=Math.min(.1,Math.max(.001,(now-(window.lt88||now))/1000));window.lt88=now;window.gt88=(window.gt88||0)+d88;for(const f of[()=>{if(!ANIM88.ok)ANIM88.init()},()=>BUS88.tick(t88,d88),()=>PED88.tick(t88,d88),()=>PIG88.tick(t88,d88),()=>PARK88.tick(t88),()=>DANNI88.tick(t88,d88),()=>LUCI88.tick(t88,d88),()=>VES88.tick(t88,d88),()=>FEN88.tick(t88,d88),()=>MEZ90.tick(t88,d88),()=>MET90.tick(t88,d88),()=>SOC90.tick(t88,d88),()=>ANI90.tick(t88,d88),()=>GOM90.tick(t88,d88),()=>LSND90.tick(),()=>STA91.tick(t88,d88),()=>POE91.tick(t88,d88),()=>TRN91.tick(t88,d88),()=>POR91.tick(t88,d88),()=>MER91.tick(t88),()=>FPS94.tick(t88),()=>MV102.tick(t88,d88),()=>LOC102.tick(),()=>VEST102.tick(),()=>ACQ103.tick(t88,d88),()=>MON103.tick(),()=>CAS103.tick(),()=>NEG104.tick(t88),()=>MARE104.tick(t88),()=>GF104.tick(t88,d88),()=>SND104.tick(t88,d88),()=>JUMP142.tick(),()=>ERO107.tick(),()=>SND107.tick(),()=>POL107.tick(t88,d88),()=>SW107.tick(t88,d88),()=>WAT107.tick(t88),()=>ANF113.build(),()=>EXT113.tick(t88,d88),()=>COR115.tick(),()=>PV117.tick(t88,d88),()=>KB119.tick(),()=>URT121.tick(),()=>ENV124.tick(),()=>ARR125.tick(),()=>VER126.tick(),()=>FIN127.tick(),()=>DET129.tick(),()=>ING141.tick(),()=>S142.tick(),()=>GR143.tick(),()=>PAE143.tick(),()=>NUR150.tick(),()=>BON151.tick(),()=>CLD143.tick(),()=>ANI143.tick(t88,d88),()=>SUO143.tick(),()=>TRN143.tick(t88,d88),()=>NAV143.tick(t88,d88),()=>FACE147.tick(),()=>TAV143.tick(t88),()=>REF143.tick(),()=>SH143.tick(),()=>LIFE142.tick(),()=>JT142.tick(),()=>V131.tick(),()=>ALB121.tick(t88),()=>NOV115.tick(),()=>NOMI114.tick(t88),()=>SEG114.tick(),()=>PORTO108.tick()])try{f()}catch(e88){if(!window.e88n){window.e88n=1;console.warn('v88 tick',e88)}}}try{CAR83.tick(now/1000)}catch(e){}try{MONDO82.tick(now/1000);CHUNK82.tick(now/1000)}catch(e){}const dt=Math.max(.001,Math.min(.05,(now-last)/1000));last=now;if(!over&&!pz&&!inside)step(dt,now/1000);if(!pz&&!inside)gfStep(dt,now/1000);if(inside&&!pz)inStepS(dt,now/1000);venStepS(dt,now/1000);{const sg=QL.sg;sunG.visible=sg>0&&sunD.position.y>cam.position.y-20;moonG.visible=sg>0&&moonD.position.y>cam.position.y-20;if(sg>0){sunG.position.copy(sunD.position);moonG.position.copy(moonD.position);sunG.scale.setScalar(70*sg);moonG.scale.setScalar(45*sg);sunG.material.opacity=.35+.1*sg;moonG.material.opacity=.3}}if(wp>0){const hh=Math.min(5,Math.ceil(wp/2));bribeC=Math.max(100,hh*150);const tx='⭐ Paga e sparisci $'+bribeC;if(gwT!==tx){gwT=tx;$('gw').textContent=tx}if(gwD!=='block'){gwD='block';$('gw').style.display='block'}}else if(gwD!=='none'){gwD='none';$('gw').style.display='none'}
 if(wp>0&&!over){let near=0;for(const c of cops)if(Math.hypot(c.x-tg.x,c.z-tg.z)<150){near=1;break}hideT=near?0:hideT+dt;if(hideT>10){wp=Math.max(0,wp-dt*1.5);if(!hideN){hideN=1;msg('Ti sei nascosto: le stelle stanno calando...')}}}else{hideT=0;hideN=0}
 {const e=foot?1:0;if(entS!==e){entS=e;entB.innerHTML=e?'<span>🚗</span><small>Sali</small>':'<span>⏏</span><small>Esci</small>'}}
 if(!foot)aim=0;if(!aim)aimP*=.85;{const v=foot?'':'none';if(aimB.style.display!==v)aimB.style.display=v}const nnT=Math.min(1,QR.ha.material.opacity/.7);ren.toneMappingExposure=QL.ex*(1-.14*nnT);moonL.intensity=nnT*.5;moonL.position.set(tg.x-30,60+(tg.y||0),tg.z+40);moonL.target.position.set(tg.x,tg.y||0,tg.z);fillL.intensity=nnT*1.8;fillL.position.set(tg.x,(tg.y||0)+4,tg.z);$('xh').style.display=((aim&&foot||!foot&&me.kind=='tank')&&!over&&!pz)?'block':'none';
