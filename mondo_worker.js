@@ -17,6 +17,8 @@
   if(V.length==3)T.push(V[0],V[1],V[2]);return T}
  function build(d,lod){
   const ox=d.o[0],oz=d.o[1],T=500,core=d.core,M=700,out={key:d.key,lod};
+  /* v150: zone dei monumenti rifatti a mano (d.ex = [x,z,raggio,...]): li' edifici e muri generici non si costruiscono */
+  const exz=(x,z)=>{const E=d.ex;if(!E)return false;for(let q=0;q<E.length;q+=3)if(Math.hypot(x-E[q],z-E[q+1])<E[q+2])return true;return false};
   // --- terreno con la foto (salta la parte gia' coperta dalla mappa di Pirri e dalla sua cornice) ---
   if(d.g){const S=20,N=T/S+1,p=new Float32Array(N*N*3),u=new Float32Array(N*N*2),n=new Float32Array(N*N*3),I=[];
    for(let j=0;j<N;j++)for(let i=0;i<N;i++){const x=ox+i*S,z=oz+j*S,k=j*N+i;p[3*k]=x;p[3*k+1]=hq(x,z);p[3*k+2]=z;u[2*k]=i/(N-1);u[2*k+1]=j/(N-1);
@@ -113,7 +115,7 @@
    const wall=(ax,az,bx,bz,h,w,C)=>{const L=Math.hypot(bx-ax,bz-az);if(L<.1)return;const ux=(bx-ax)/L,uz=(bz-az)/L,nx=-uz*w/2,nz=ux*w/2,ya=ht(ax,az)-.2,yb=ht(bx,bz)-.2;
     const S=[[ax+nx,az+nz,bx+nx,bz+nz,-uz,ux],[bx-nx,bz-nz,ax-nx,az-nz,uz,-ux]];for(const [x0,z0,x1,z1,qx,qz] of S){const P=[[x0,ya,z0],[x1,yb,z1],[x1,yb+h+.2,z1],[x0,ya+h+.2,z0]];for(const i of[0,1,2,0,2,3]){R.p.push(...P[i]);R.n.push(qx,0,qz);R.u.push(0,0);R.c.push(...C)}}
     if(w>.15){const P=[[ax+nx,ya+h,az+nz],[bx+nx,yb+h,bz+nz],[bx-nx,yb+h,bz-nz],[ax-nx,ya+h,az-nz]];for(const i of[0,1,2,0,2,3]){R.p.push(...P[i]);R.n.push(0,1,0);R.u.push(0,0);R.c.push(...C.map(v=>v*1.08))}}};
-   for(let k=0;k+4<d.f.length;k+=5){const ty=d.f[k];wall(ox+d.f[k+1]/10,oz+d.f[k+2]/10,ox+d.f[k+3]/10,oz+d.f[k+4]/10,FH[ty],FW[ty],FC[ty])}}
+   for(let k=0;k+4<d.f.length;k+=5){const ty=d.f[k];if(exz(ox+d.f[k+1]/10,oz+d.f[k+2]/10))continue;wall(ox+d.f[k+1]/10,oz+d.f[k+2]/10,ox+d.f[k+3]/10,oz+d.f[k+4]/10,FH[ty],FW[ty],FC[ty])}}
   out.road=R.f();
   // --- edifici ---
   const W=new B(),RF=new B(),boxes=[];const Wd=2048,Hh=1024,RH=204;
@@ -169,7 +171,7 @@
     if(f==0&&v==3){const tc=2.7*su;WN.push(x0+dx*tc,y0+2.72*sv,z0+dz*tc,nx,nz,4.3*su,.55,32)}
     if(f>0)for(const b of WB[v]){const tc=(b[0]+b[1]/2)*su;BN.push(x0+dx*tc,y0+f*fh,z0+dz*tc,nx,nz,(b[1]+.3)*su,v%2)}}};
   let bi=0;
-  for(const b of d.b){bi++;const H=b[0]/10,rc=b[1],fl=b[2],sp=fl&7,n=b[3],P=[];for(let k=0;k<n;k++)P.push(ox+b[4+2*k]/10,oz+b[5+2*k]/10);
+  for(const b of d.b){bi++;const H=b[0]/10,rc=b[1],fl=b[2],sp=fl&7,n=b[3],P=[];for(let k=0;k<n;k++)P.push(ox+b[4+2*k]/10,oz+b[5+2*k]/10);if(exz(P[0],P[1]))continue;
    let ar=0;for(let i=0;i<n;i++){const j=(i+1)%n;ar+=P[2*i]*P[2*j+1]-P[2*j]*P[2*i+1]}if(ar<0){const Q2=[];for(let i=n-1;i>=0;i--)Q2.push(P[2*i],P[2*i+1]);P.length=0;P.push(...Q2)}
    let gmin=1e9,gs=0;const GE=[];for(let i=0;i<n;i++){const g=ht(P[2*i],P[2*i+1]);GE.push(g);gmin=Math.min(gmin,g);gs+=g}
    const top=gs/n+H,sb=P[0]*13.7+P[1]*7.3,plain=sp==2||sp==3||sp==1||lod==0,floors=Math.max(1,Math.min(40,Math.round(H/3.2))),small=Math.abs(ar)/2<260;
@@ -208,7 +210,7 @@
     let pr=BC.get(bk);if(!pr){/* v137: se il secondo sito non risponde, riserva sul sito del gioco (m.u2) */const F2=u=>fetch(m.url+u).then(r=>{if(!r.ok)throw 0;return r}).catch(e=>m.u2&&m.u2!=m.url?fetch(m.u2+u):Promise.reject(e));pr=F2('b_'+bk+'.json').then(r=>r.json());BC.set(bk,pr);if(BC.size>10)BC.delete(BC.keys().next().value)}
     const BD=await pr;if(BD._q&&!FQ.has(bk)){FQ.set(bk,decQ(BD._q));FB=BD._q.fb||2000;while(FQ.size>120)FQ.delete(FQ.keys().next().value)}
     BR.set(bk,BD);if(BR.size>12)BR.delete(BR.keys().next().value);
-    const d=Object.assign({},BD[m.key]);d.key=m.key;d.core=m.core;d.nb=nbRoads(BD,m.key,m.bs);
+    const d=Object.assign({},BD[m.key]);d.key=m.key;d.core=m.core;d.ex=m.ex;d.nb=nbRoads(BD,m.key,m.bs);
     let img=null;/* v137: foto del quadrato in un file .jpg a parte (mondo/img/t_I_J.jpg) */if(m.h18){try{const r=await fetch(m.h18);if(r.ok)img=await createImageBitmap(await r.blob())}catch(er){}}if(d.im&&!img){try{const r=await fetch(m.url+'img/t_'+m.key+'.jpg').then(r=>r.ok||!m.u2||m.u2==m.url?r:fetch(m.u2+'img/t_'+m.key+'.jpg'),()=>m.u2?fetch(m.u2+'img/t_'+m.key+'.jpg'):null);if(r.ok)img=await createImageBitmap(await r.blob())}catch(er){}}if(d.img){try{const bs=atob(d.img),u8=new Uint8Array(bs.length);for(let q=0;q<bs.length;q++)u8[q]=bs.charCodeAt(q);img=await createImageBitmap(new Blob([u8],{type:'image/jpeg'}))}catch(er){}}delete d.img;
     const o=build(d,m.lod);o.img=img;o.data=d;if(BD._q){o.q=BD._q;o.bk=bk}const tf=[];for(const k of['ground','water','road','walls','roofs'])if(o[k])for(const a of Object.values(o[k]))tf.push(a.buffer);tf.push(o.boxes.buffer,o.trees.buffer,o.win.buffer,o.bal.buffer,o.bush.buffer,o.sig.buffer);if(img)tf.push(img);
     postMessage(o,tf)}catch(er){postMessage({key:m.key,err:String(er)})}}
